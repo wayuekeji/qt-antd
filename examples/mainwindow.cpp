@@ -4,10 +4,13 @@
 #include <QListWidget>
 #include "antddividersettingseditor.h"
 #include <QMap>
+#include <lib/QtAntdTheme.h>
+#include <QPushButton>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent), isDarkMode(false)
 {
+    theme = QtAntdTheme::lightTheme(this);
     QWidget *widget = new QWidget;
     widget->setMaximumHeight(800);
     QHBoxLayout *layout = new QHBoxLayout;
@@ -41,6 +44,44 @@ MainWindow::MainWindow(QWidget *parent)
         QWidget *w = pageMap.value(text, nullptr);
         if (w) stack->setCurrentWidget(w);
     });
+
+    // Add theme switch button
+    themeSwitchButton = new QPushButton("Switch to Dark Mode", this);
+    themeSwitchButton->setFixedWidth(180);
+    layout->addWidget(themeSwitchButton);
+    QObject::connect(themeSwitchButton, &QPushButton::clicked, this, &MainWindow::toggleTheme);
+
+    applyTheme();
+}
+
+void MainWindow::toggleTheme()
+{
+    isDarkMode = !isDarkMode;
+    if (isDarkMode) {
+        theme->setThemeMode(Antd::Dark);
+        themeSwitchButton->setText("Switch to Light Mode");
+    } else {
+        theme->setThemeMode(Antd::Light);
+        themeSwitchButton->setText("Switch to Dark Mode");
+    }
+    applyTheme();
+}
+
+void MainWindow::applyTheme()
+{
+    // Apply theme to main window and widgets
+    QString bgColor = theme->background().name();
+    QString textColor = theme->text().name();
+    QString primaryColor = theme->primary().name();
+    QString borderColor = theme->border().name();
+    setStyleSheet(QString(
+        "QMainWindow { background-color: %1; color: %2; } "
+        "QListWidget { background-color: %1; color: %2; border: 1px solid %3; } "
+        "QListWidget::item:selected { background-color: %4; } "
+        "QPushButton { background-color: %4; color: white; border: none; "
+        "  padding: 8px 16px; border-radius: 4px; } "
+        "QPushButton:hover { background-color: %5; }"
+    ).arg(bgColor, textColor, borderColor, primaryColor, theme->getColor("primary-hover").name()));
 }
 
 MainWindow::~MainWindow()

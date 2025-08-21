@@ -3,6 +3,7 @@
 
 #include <QColor>
 #include <QHash>
+#include <lib/QtAntdTheme.h>
 
 class QtAntdTheme;
 
@@ -15,10 +16,19 @@ public:
     QtAntdThemePrivate(QtAntdTheme *q);
     ~QtAntdThemePrivate();
 
-    QColor rgba(int r, int g, int b, qreal a) const;
+    QColor rgba(int r, int g, int b, qreal a = 1.0) const;
+    QColor hex(const QString &hex) const;
+    
+    void initializeLightTheme();
+    void initializeDarkTheme();
+    void initializeColorPalette();
+    
+    QColor getAntdColor(Antd::Color color) const;
 
     QtAntdTheme *const q_ptr;
     QHash<QString, QColor> colors;
+    QHash<Antd::Color, QPair<QColor, QColor>> colorPalette; // Light, Dark pairs
+    Antd::ThemeMode themeMode;
 };
 
 #endif  // QtAntdTheme_P_H
