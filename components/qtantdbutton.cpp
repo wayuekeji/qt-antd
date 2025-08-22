@@ -550,6 +550,8 @@ void QtAntdButton::setLoading(bool loading)
             // setEnabled(true);
         }
         
+        // Update the button geometry since loading state affects size calculation
+        d->updateGeometry();
         update();
     }
 }
@@ -603,7 +605,7 @@ QSize QtAntdButton::sizeHint() const
     
     // Account for spinner if loading
     if (d->isLoading) {
-        textWidth += d->getSpinnerSize() + 8; // Spinner + spacing
+        textWidth += d->getSpinnerSize() + 8 + horizontalPadding;// Spinner + spacing
     }
     
     // Ensure width is sufficient for content plus padding
@@ -758,6 +760,9 @@ void QtAntdButton::paintEvent(QPaintEvent *event)
         contentX = qMax(contentX, textRect.left() + minHPadding);
     }
     
+    // Store initial content position to ensure proper centering
+    int initialContentX = contentX;
+    
     // Draw the icon if not in loading state
     if (!option.icon.isNull() && !d->isLoading) {
         QPixmap pixmap = option.icon.pixmap(option.iconSize, isEnabled() ? QIcon::Normal : QIcon::Disabled);
@@ -774,21 +779,38 @@ void QtAntdButton::paintEvent(QPaintEvent *event)
         }
     }
     
-    // Draw loading spinner if in loading state
+    // In loading state, we need to draw both spinner and text as a single centered unit
     if (d->isLoading) {
-        // Create a rect that ensures the spinner is vertically centered with the text
-        QRect spinnerRect(
-            contentX,
-            textRect.center().y() - spinnerSize / 2,
-            spinnerSize,
-            spinnerSize
-        );
-        d->drawLoadingSpinner(&painter, spinnerRect, currentTextColor);
-        contentX += spinnerSize + spinnerSpacing;
-    }
-    
-    // Draw text
-    if (!option.text.isEmpty()) {
+        if (!option.text.isEmpty()) {
+            // If we have text, calculate everything from the initial position
+            contentX = initialContentX;
+            
+            // Create a rect that ensures the spinner is vertically centered with the text
+            QRect spinnerRect(
+                contentX,
+                textRect.center().y() - spinnerSize / 2,
+                spinnerSize,
+                spinnerSize
+            );
+            d->drawLoadingSpinner(&painter, spinnerRect, currentTextColor);
+            contentX += spinnerSize + spinnerSpacing;
+            
+            // Draw text right after spinner
+            QRect adjustedTextRect = textRect;
+            adjustedTextRect.setLeft(contentX);
+            painter.drawText(adjustedTextRect, Qt::AlignLeft | Qt::AlignVCenter, option.text);
+        } else {
+            // Spinner only - center it in the button
+            QRect spinnerRect(
+                textRect.center().x() - spinnerSize / 2,
+                textRect.center().y() - spinnerSize / 2,
+                spinnerSize,
+                spinnerSize
+            );
+            d->drawLoadingSpinner(&painter, spinnerRect, currentTextColor);
+        }
+    } else if (!option.text.isEmpty()) {
+        // Draw text (when not loading)
         QRect adjustedTextRect = textRect;
         adjustedTextRect.setLeft(contentX);
         painter.drawText(adjustedTextRect, Qt::AlignLeft | Qt::AlignVCenter, option.text);
