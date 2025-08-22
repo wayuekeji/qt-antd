@@ -4,7 +4,7 @@
 #include <QListWidget>
 #include "antddividersettingseditor.h"
 #include <QMap>
-#include <lib/QtAntdTheme.h>
+#include <lib/qtantdtheme.h>
 #include <QPushButton>
 
 MainWindow::MainWindow(QWidget *parent)

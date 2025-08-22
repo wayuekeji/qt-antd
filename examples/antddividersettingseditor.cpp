@@ -9,7 +9,7 @@
 #include <QLabel>
 #include <QColorDialog>
 #include <QGroupBox>
-#include <QtAntdDivider.h>
+#include <qtantddivider.h>
 
 AntdDividerSettingsEditor::AntdDividerSettingsEditor(QWidget *parent)
     : QWidget(parent),

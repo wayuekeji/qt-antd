@@ -3,7 +3,7 @@
 
 #include <QColor>
 #include <QHash>
-#include <lib/QtAntdTheme.h>
+#include "../include/qtantd/lib/qtantdtheme.h"
 
 class QtAntdTheme;
 

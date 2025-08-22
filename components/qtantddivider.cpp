@@ -1,6 +1,6 @@
 #include "qtantddivider.h"
 #include "qtantddivider_p.h"
-#include "lib/qtantdstyle.h"
+#include "../include/qtantd/lib/qtantdstyle.h"
 #include <QPainter>
 #include <QFontMetrics>
 
