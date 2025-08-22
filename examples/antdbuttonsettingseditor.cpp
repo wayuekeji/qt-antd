@@ -102,6 +102,7 @@ void AntdButtonSettingsEditor::createPreviewGroup()
 {
     previewGroup = new QGroupBox("Preview", this);
     QVBoxLayout *layout = new QVBoxLayout(previewGroup);
+    layout->setAlignment(Qt::AlignCenter);
     
     previewButton = new QtAntdButton("Sample Button", this);
     iconButton = new QtAntdButton("🎉 With Icon", this);

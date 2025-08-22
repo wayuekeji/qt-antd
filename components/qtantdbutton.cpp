@@ -47,7 +47,7 @@ void QtAntdButtonPrivate::init()
     isPressed = false;
 
     // Set up default size policy
-    QSizePolicy policy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    QSizePolicy policy(QSizePolicy::Maximum, QSizePolicy::Fixed);
     q->setSizePolicy(policy);
     
     // Initial color update
@@ -412,10 +412,11 @@ void QtAntdButton::setBlock(bool block)
         if (block) {
             policy.setHorizontalPolicy(QSizePolicy::Expanding);
         } else {
-            policy.setHorizontalPolicy(QSizePolicy::Minimum);
+            policy.setHorizontalPolicy(QSizePolicy::Maximum);
         }
         setSizePolicy(policy);
         d->updateGeometry();
+        update();
     }
 }
 
