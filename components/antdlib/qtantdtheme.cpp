@@ -1,6 +1,6 @@
-#include <lib/QtAntdTheme.h>
+#include "../include/qtantd/lib/qtantdtheme.h"
 
-#include "QtAntdTheme_p.h"
+#include "qtantdtheme_p.h"
 
 #include <QDebug>
 #include <QString>

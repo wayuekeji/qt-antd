@@ -1,6 +1,6 @@
 #include <QFontDatabase>
-#include <lib/QtAntdStyle.h>
-#include <lib/QtAntdTheme.h>
+#include "../include/qtantd/lib/qtantdstyle.h"
+#include "../include/qtantd/lib/qtantdtheme.h"
 
 /*!
  *  @class QtAntdStylePrivate

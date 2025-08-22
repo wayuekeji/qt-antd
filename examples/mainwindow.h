@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <lib/QtAntdTheme.h>
+#include <lib/qtantdtheme.h>
 #include <QPushButton>
 
 class MainWindow : public QMainWindow
