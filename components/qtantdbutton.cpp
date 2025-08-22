@@ -7,6 +7,9 @@
 #include <QMouseEvent>
 #include <QStyleOptionButton>
 #include <QEnterEvent>
+#include <QTimer>
+#include <QtMath>
+#include <QDebug>
 
 /*!
  * \class QtAntdButtonPrivate
@@ -26,6 +29,12 @@ QtAntdButtonPrivate::QtAntdButtonPrivate(QtAntdButton *q)
  */
 QtAntdButtonPrivate::~QtAntdButtonPrivate()
 {
+    // Clean up timer
+    if (loadingTimer) {
+        loadingTimer->stop();
+        delete loadingTimer;
+        loadingTimer = nullptr;
+    }
 }
 
 /*!
@@ -45,6 +54,14 @@ void QtAntdButtonPrivate::init()
     isLoading = false;
     isHovered = false;
     isPressed = false;
+    
+    // Initialize loading animation properties
+    loadingAngle = 0;
+    loadingTimer = new QTimer(q);
+    QObject::connect(loadingTimer, &QTimer::timeout, q, [this]() {
+        loadingAngle = (loadingAngle + 15) % 360; // Rotate by 15 degrees each time for faster rotation
+        q_ptr->update();
+    });
 
     // Set up default size policy
     QSizePolicy policy(QSizePolicy::Maximum, QSizePolicy::Fixed);
@@ -307,6 +324,66 @@ QColor QtAntdButtonPrivate::getPressedTextColor() const
 }
 
 /*!
+ * \internal
+ */
+void QtAntdButtonPrivate::startLoadingAnimation()
+{
+    if (!loadingTimer->isActive()) {
+        loadingAngle = 0;
+        loadingTimer->start(30); // Update every 30ms for faster animation
+    }
+}
+
+/*!
+ * \internal
+ */
+void QtAntdButtonPrivate::stopLoadingAnimation()
+{
+    if (loadingTimer->isActive()) {
+        loadingTimer->stop();
+    }
+}
+
+/*!
+ * \internal
+ */
+void QtAntdButtonPrivate::drawLoadingSpinner(QPainter *painter, const QRect &rect, const QColor &color)
+{
+    // Save the painter state
+    painter->save();
+    
+    // Set pen properties for the spinner
+    QPen pen(color);
+    pen.setWidth(1.5); // Slightly thicker line for better visibility with shorter arc
+    pen.setCapStyle(Qt::RoundCap); // Round ends for smoother look
+    
+    painter->setPen(pen);
+    painter->setRenderHint(QPainter::Antialiasing);
+    
+    int spinnerSize = getSpinnerSize();
+    
+    // Get the center point of the provided rectangle
+    QPoint center = rect.center();
+    
+    // Draw a simple rotating circle centered exactly at the provided center point
+    painter->translate(center);
+    painter->rotate(loadingAngle);
+    
+    // Draw circle with a gap to indicate rotation
+    // Using a slightly smaller size than spinnerSize to keep it proportional
+    int drawSize = spinnerSize - 2;
+    int arcLength = 72; // Approximately 1/5 of a circle (360/5)
+    int startAngle = 0; // Start at the top
+    
+    painter->drawArc(QRect(-drawSize/2, -drawSize/2, drawSize, drawSize), 
+                    startAngle * 16, // Qt uses 1/16 of a degree units
+                    arcLength * 16);
+    
+    // Restore the painter state
+    painter->restore();
+}
+
+/*!
  * \class QtAntdButton
  */
 
@@ -463,7 +540,16 @@ void QtAntdButton::setLoading(bool loading)
     Q_D(QtAntdButton);
     if (d->isLoading != loading) {
         d->isLoading = loading;
-        setEnabled(!loading);
+        
+        // Start or stop animation
+        if (loading) {
+            d->startLoadingAnimation();
+            // setEnabled(false); // Disable button while loading
+        } else {
+            d->stopLoadingAnimation();
+            // setEnabled(true);
+        }
+        
         update();
     }
 }
@@ -487,8 +573,8 @@ QSize QtAntdButton::sizeHint() const
     
     switch (d->buttonSize) {
         case Small:
-            extraHeight = -8;
-            extraWidth = -16;
+            extraHeight = -6; // Reduced negative height adjustment
+            extraWidth = -12; // Reduced negative width adjustment
             break;
         case Medium:
             // Default size
@@ -499,8 +585,32 @@ QSize QtAntdButton::sizeHint() const
             break;
     }
     
+    // Calculate minimum size needed for text content
+    int textWidth = 0;
+    int horizontalPadding = 16; // Minimum horizontal padding
+    
+    if (!text().isEmpty()) {
+        textWidth = fontMetrics().horizontalAdvance(text());
+    }
+    
+    // Account for icon if present
+    if (!icon().isNull() && !d->isLoading) {
+        textWidth += iconSize().width();
+        if (!text().isEmpty()) {
+            textWidth += 8; // Spacing between icon and text
+        }
+    }
+    
+    // Account for spinner if loading
+    if (d->isLoading) {
+        textWidth += d->getSpinnerSize() + 8; // Spinner + spacing
+    }
+    
+    // Ensure width is sufficient for content plus padding
+    int minContentWidth = textWidth + horizontalPadding;
+    
     size.setHeight(qMax(size.height() + extraHeight, 24));
-    size.setWidth(size.width() + extraWidth);
+    size.setWidth(qMax(size.width() + extraWidth, minContentWidth));
     
     return size;
 }
@@ -515,6 +625,26 @@ QSize QtAntdButton::minimumSizeHint() const
     switch (d->buttonSize) {
         case Small:
             size.setHeight(qMax(size.height(), 24));
+            
+            // Calculate minimum width needed for text content
+            if (!text().isEmpty() || !icon().isNull() || d->isLoading) {
+                int minWidth = 0;
+                int minPadding = 12; // Minimum horizontal padding for Small buttons
+                
+                if (!text().isEmpty()) {
+                    minWidth += fontMetrics().horizontalAdvance(text());
+                }
+                
+                if (!icon().isNull() && !d->isLoading) {
+                    minWidth += iconSize().width() + (text().isEmpty() ? 0 : 8);
+                }
+                
+                if (d->isLoading) {
+                    minWidth += d->getSpinnerSize() + 8;
+                }
+                
+                size.setWidth(qMax(size.width(), minWidth + minPadding));
+            }
             break;
         case Medium:
             size.setHeight(qMax(size.height(), 32));
@@ -593,30 +723,96 @@ void QtAntdButton::paintEvent(QPaintEvent *event)
     QStyleOptionButton option;
     option.initFrom(this);
     option.text = text();
-    option.icon = icon();
+    option.icon = d->isLoading ? QIcon() : icon(); // Don't use the icon when loading
     option.iconSize = iconSize();
     
     QRect textRect = rect;
+    int contentWidth = 0;
+    int spinnerSize = d->getSpinnerSize();
+    int spinnerSpacing = 8;
     
-    if (!option.icon.isNull()) {
+    // Determine spinner size based on button size
+    if (d->isLoading) {
+        contentWidth += spinnerSize + spinnerSpacing;
+    }
+    
+    // Calculate text width if there is text
+    if (!option.text.isEmpty()) {
+        contentWidth += fontMetrics().horizontalAdvance(option.text);
+    }
+    
+    // Add icon width if present and not in loading state
+    if (!option.icon.isNull() && !d->isLoading) {
+        contentWidth += option.iconSize.width();
+        if (!option.text.isEmpty()) {
+            contentWidth += 8; // Spacing between icon and text
+        }
+    }
+    
+    // Calculate starting position for content
+    int contentX = textRect.left() + (textRect.width() - contentWidth) / 2;
+    
+    // Ensure minimum padding for Small size
+    if (d->buttonSize == Small && contentWidth > 0) {
+        int minHPadding = 6; // Minimum horizontal padding for each side
+        contentX = qMax(contentX, textRect.left() + minHPadding);
+    }
+    
+    // Draw the icon if not in loading state
+    if (!option.icon.isNull() && !d->isLoading) {
         QPixmap pixmap = option.icon.pixmap(option.iconSize, isEnabled() ? QIcon::Normal : QIcon::Disabled);
         
         int iconSpacing = 8;
-        int iconX = textRect.left() + (textRect.width() - option.iconSize.width() - iconSpacing - fontMetrics().horizontalAdvance(option.text)) / 2;
         
         if (!option.text.isEmpty()) {
             // Icon + text
-            painter.drawPixmap(iconX, textRect.center().y() - option.iconSize.height() / 2, pixmap);
-            textRect.setLeft(iconX + option.iconSize.width() + iconSpacing);
+            painter.drawPixmap(contentX, textRect.center().y() - option.iconSize.height() / 2, pixmap);
+            contentX += option.iconSize.width() + iconSpacing;
         } else {
             // Icon only
             painter.drawPixmap(textRect.center() - QPoint(option.iconSize.width() / 2, option.iconSize.height() / 2), pixmap);
         }
     }
     
-    if (!option.text.isEmpty()) {
-        painter.drawText(textRect, Qt::AlignCenter, option.text);
+    // Draw loading spinner if in loading state
+    if (d->isLoading) {
+        // Create a rect that ensures the spinner is vertically centered with the text
+        QRect spinnerRect(
+            contentX,
+            textRect.center().y() - spinnerSize / 2,
+            spinnerSize,
+            spinnerSize
+        );
+        d->drawLoadingSpinner(&painter, spinnerRect, currentTextColor);
+        contentX += spinnerSize + spinnerSpacing;
     }
+    
+    // Draw text
+    if (!option.text.isEmpty()) {
+        QRect adjustedTextRect = textRect;
+        adjustedTextRect.setLeft(contentX);
+        painter.drawText(adjustedTextRect, Qt::AlignLeft | Qt::AlignVCenter, option.text);
+    }
+
+
+    // Removed commented-out code
+}
+
+
+int QtAntdButtonPrivate::getSpinnerSize() const {
+    int spinnerSize = 14; // Default value
+    switch (buttonSize) {
+        case QtAntdButton::Small:
+            spinnerSize = 12;
+            break;
+        case QtAntdButton::Medium:
+            spinnerSize = 14;
+            break;
+        case QtAntdButton::Large:
+            spinnerSize = 16;
+            break;
+    }
+    return spinnerSize;
 }
 
 void QtAntdButton::mousePressEvent(QMouseEvent *event)
