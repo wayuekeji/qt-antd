@@ -28,16 +28,19 @@ set(THELIB
 
 set(COMPONENTSHEADER 
     qtantddivider_p.h
+    qtantdbutton_p.h
     antdlib/qtantdstyle_p.h
     antdlib/qtantdtheme_p.h
 )
 
 set(COMPONENTSSOURCE 
     qtantddivider.cpp
+    qtantdbutton.cpp
 )
 
 set(HEADER 
     ../include/qtantd/qtantddivider.h
+    ../include/qtantd/qtantdbutton.h
     ../include/qtantd/components_global.h
 )
 

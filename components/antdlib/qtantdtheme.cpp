@@ -115,6 +115,14 @@ void QtAntdThemePrivate::initializeLightTheme()
     colors["error"] = getAntdColor(Antd::Error);
     colors["info"] = getAntdColor(Antd::Info);
     
+    // Status hover/active states
+    colors["error-hover"] = getAntdColor(Antd::Gray4);  // Light background for error hover
+    colors["error-active"] = getAntdColor(Antd::Gray3);  // Even lighter for active
+    colors["error-background"] = getAntdColor(Antd::Gray1); // Very light background
+    
+    // Primary background for non-filled buttons
+    colors["primary-background"] = getAntdColor(Antd::Blue1);
+    
     // Disabled state
     colors["disabled"] = getAntdColor(Antd::Gray5);
     colors["disabled-background"] = getAntdColor(Antd::Gray2);
@@ -157,6 +165,14 @@ void QtAntdThemePrivate::initializeDarkTheme()
     colors["warning"] = getAntdColor(Antd::Warning);
     colors["error"] = getAntdColor(Antd::Error);
     colors["info"] = getAntdColor(Antd::Info);
+    
+    // Status hover/active states for dark mode
+    colors["error-hover"] = getAntdColor(Antd::Gray9);   // Dark background for error hover
+    colors["error-active"] = getAntdColor(Antd::Gray10); // Even darker for active
+    colors["error-background"] = getAntdColor(Antd::Gray11); // Very dark background
+    
+    // Primary background for non-filled buttons in dark mode
+    colors["primary-background"] = getAntdColor(Antd::Blue10);
     
     // Disabled state
     colors["disabled"] = getAntdColor(Antd::Gray5);
