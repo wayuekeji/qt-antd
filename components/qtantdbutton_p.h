@@ -3,6 +3,8 @@
 
 #include <QtGlobal>
 #include <QColor>
+#include <QTimer>
+#include <QPropertyAnimation>
 
 class QtAntdButton;
 
@@ -31,6 +33,11 @@ public:
     QColor getPressedBorderColor() const;
     QColor getPressedTextColor() const;
 
+    int getSpinnerSize() const;
+    void startLoadingAnimation();
+    void stopLoadingAnimation();
+    void drawLoadingSpinner(QPainter *painter, const QRect &rect, const QColor &color);
+
     QtAntdButton *const q_ptr;
 
     QtAntdButton::ButtonType buttonType;
@@ -45,6 +52,10 @@ public:
     bool isHovered;
     bool isPressed;
 
+    // Loading animation
+    QTimer *loadingTimer;
+    int loadingAngle;
+    
     // Cached colors for performance
     QColor backgroundColor;
     QColor borderColor;
