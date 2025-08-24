@@ -10,6 +10,113 @@
 #include <QTimer>
 #include <QtMath>
 #include <QDebug>
+#include <functional> // For std::hash
+
+struct ButtonTypeToChooseColor
+{
+    QtAntdButton::ButtonType type;
+    bool isDanger;
+    bool isHover;
+    bool isPressed;
+    bool isGhost;
+
+    bool operator==(const ButtonTypeToChooseColor &other) const {
+        return type == other.type &&
+               isDanger == other.isDanger &&
+               isHover == other.isHover &&
+               isPressed == other.isPressed &&
+               isGhost == other.isGhost;
+    }
+
+};
+
+// Hash function specialization for ButtonTypeToChooseColor
+namespace std {
+    template<>
+    struct hash<ButtonTypeToChooseColor> {
+        std::size_t operator()(const ButtonTypeToChooseColor& key) const {
+            // Combine the hash of the struct members
+            std::size_t h1 = std::hash<int>{}(static_cast<int>(key.type));
+            std::size_t h2 = std::hash<bool>{}(key.isDanger);
+            std::size_t h3 = std::hash<bool>{}(key.isHover);
+            std::size_t h4 = std::hash<bool>{}(key.isPressed);
+            std::size_t h5 = std::hash<bool>{}(key.isGhost);
+            
+            // Simple hash combination
+            return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3) ^ (h5 << 4);
+        }
+    };
+}
+
+const std::unordered_map<QtAntdButton::ButtonSize, int> buttonSize2ExtraWidth = {
+    { QtAntdButton::Small,  -12 },
+    { QtAntdButton::Medium, 0 },
+    { QtAntdButton::Large,  16 }
+};
+
+const std::unordered_map<QtAntdButton::ButtonSize, int> buttonSize2ExtraHeight = {
+    { QtAntdButton::Small,  -6 },
+    { QtAntdButton::Medium, 0 },
+    { QtAntdButton::Large,  8 }
+};
+
+QtAntdStyle &style = QtAntdStyle::instance();
+const std::unordered_map<struct ButtonTypeToChooseColor, QColor> button2BackgroundColor = {
+    { { QtAntdButton::Primary, false, false, false, false }, style.themeColor("primary") }, // primary, default
+    { { QtAntdButton::Primary, false, true, false, false }, style.themeColor("primary-hover") }, // hover
+    { { QtAntdButton::Primary, false, false, true, false }, style.themeColor("primary-active") }, // press
+    { { QtAntdButton::Primary, true, false, false, false }, style.themeColor("error") }, // danger
+    { { QtAntdButton::Primary, true, true, false, false }, style.themeColor("error-hover") }, // danger & hover
+    { { QtAntdButton::Primary, true, false, true, false }, style.themeColor("error-active") }, // danger & press
+
+    { { QtAntdButton::Default, false, false, false, false }, style.themeColor("background") }, // default, default
+    { { QtAntdButton::Default, true, false, false, false }, QColor(255,255,255,0) },
+
+    { { QtAntdButton::Dashed, false, false, false, false }, style.themeColor("background")},
+    { { QtAntdButton::Dashed, true, false, false, false }, style.themeColor("background") },
+
+    { { QtAntdButton::Text, false, false, false, false }, QColor(255, 255, 255, 0) }, // Transparent
+    { { QtAntdButton::Link, false, false, false, false }, QColor(255, 255, 255, 0) }  // Transparent
+};
+
+const std::unordered_map<struct ButtonTypeToChooseColor, QColor> button2BorderColor = {
+    { { QtAntdButton::Primary, false, false, false, false }, style.themeColor("primary") }, // primary, default
+    { { QtAntdButton::Primary, false, true, false, false }, style.themeColor("primary") }, // hover
+    { { QtAntdButton::Primary, false, false, true, false }, style.themeColor("primary") }, // press
+
+    { { QtAntdButton::Default, false, false, false, false }, style.themeColor("border") }, // default, default
+    { { QtAntdButton::Default, false, true, false, false }, style.themeColor("primary-hover") }, // hover
+    { { QtAntdButton::Default, false, false, true, false }, style.themeColor("primary-active") }, // press
+    { { QtAntdButton::Default, true, false, false, false }, style.themeColor("error") }, // default, danger
+    { { QtAntdButton::Default, true, true, false, false }, style.themeColor("error-hover") }, // danger, hover
+    { { QtAntdButton::Default, true, false, true, false }, style.themeColor("error-active") }, // danger, press
+
+    { { QtAntdButton::Dashed, false, false, false, false }, QColor("#d9d9d9") },
+    { { QtAntdButton::Text, false, false, false, false }, QColor(255, 255, 255, 0) }, // Transparent
+    { { QtAntdButton::Link, false, false, false, false }, QColor(255, 255, 255, 0) }  // Transparent
+};
+
+
+const std::unordered_map<struct ButtonTypeToChooseColor, QColor> button2TextColor = {
+    { { QtAntdButton::Primary, false, false, false, false }, QColor("#ffffff") }, // primary, default
+
+
+    { { QtAntdButton::Default, false, false, false, false }, style.themeColor("text") }, // default, default
+    { { QtAntdButton::Default, false, true, false, false }, style.themeColor("primary-hover") }, // default, hover
+    { { QtAntdButton::Default, false, false, true, false }, style.themeColor("primary-active") }, // default, press
+    { { QtAntdButton::Default, true, false, false, false }, style.themeColor("error") }, // default, danger
+    { { QtAntdButton::Default, true, true, false, false }, style.themeColor("error-hover") }, // danger, hover
+    { { QtAntdButton::Default, true, false, true, false }, style.themeColor("error-active") }, // danger, press
+
+    { { QtAntdButton::Dashed, false, false, false, false }, QColor("#000000") },
+    { { QtAntdButton::Text, false, false, false, false }, QColor("#000000") },
+    { { QtAntdButton::Link, false, false, false, false }, QColor("#1890ff") }
+};
+
+const int horizontalPadding = 16;
+const int iconTextSpacing = 8;
+const int buttonMinimumHeight = 24;
+const int timerInterval = 30; // ms
 
 /*!
  * \class QtAntdButtonPrivate
@@ -110,17 +217,9 @@ QColor QtAntdButtonPrivate::getBackgroundColor() const
     if (!q_ptr->isEnabled()) {
         return style.themeColor("disabled-background");
     }
-
-    switch (buttonType) {
-        case QtAntdButton::Primary:
-            return isDanger ? style.themeColor("error") : style.themeColor("primary");
-        case QtAntdButton::Default:
-            return isGhost ? QColor(255, 255, 255, 0) : style.themeColor("background");
-        case QtAntdButton::Dashed:
-            return style.themeColor("background");
-        case QtAntdButton::Text:
-        case QtAntdButton::Link:
-            return QColor(255, 255, 255, 0); // Transparent
+    ButtonTypeToChooseColor key{ buttonType, isDanger,false, false, isGhost };
+    if (button2BackgroundColor.find(key) != button2BackgroundColor.end()) {
+        return button2BackgroundColor.at(key);
     }
     return style.themeColor("background");
 }
@@ -136,16 +235,9 @@ QColor QtAntdButtonPrivate::getBorderColor() const
         return style.themeColor("border");
     }
 
-    switch (buttonType) {
-        case QtAntdButton::Primary:
-            return isDanger ? style.themeColor("error") : style.themeColor("primary");
-        case QtAntdButton::Default:
-            return style.themeColor("border");
-        case QtAntdButton::Dashed:
-            return style.themeColor("border");
-        case QtAntdButton::Text:
-        case QtAntdButton::Link:
-            return QColor(255, 255, 255, 0); // Transparent
+    ButtonTypeToChooseColor key{ buttonType, isDanger,false, false, isGhost };
+    if (button2BorderColor.find(key) != button2BorderColor.end()) {
+        return button2BorderColor.at(key);
     }
     return style.themeColor("border");
 }
@@ -161,16 +253,9 @@ QColor QtAntdButtonPrivate::getTextColor() const
         return style.themeColor("disabled");
     }
 
-    switch (buttonType) {
-        case QtAntdButton::Primary:
-            return QColor(255, 255, 255); // White text on colored background
-        case QtAntdButton::Default:
-        case QtAntdButton::Dashed:
-            return style.themeColor("text");
-        case QtAntdButton::Text:
-            return isDanger ? style.themeColor("error") : style.themeColor("text");
-        case QtAntdButton::Link:
-            return isDanger ? style.themeColor("error") : style.themeColor("primary");
+    ButtonTypeToChooseColor key{ buttonType, isDanger,false, false, isGhost };
+    if (button2TextColor.find(key) != button2TextColor.end()) {
+        return button2TextColor.at(key);
     }
     return style.themeColor("text");
 }
@@ -186,16 +271,9 @@ QColor QtAntdButtonPrivate::getHoverBackgroundColor() const
         return getBackgroundColor();
     }
 
-    switch (buttonType) {
-        case QtAntdButton::Primary:
-            return isDanger ? style.themeColor("error-hover") : style.themeColor("primary-hover");
-        case QtAntdButton::Default:
-        case QtAntdButton::Dashed:
-            return isDanger ? style.themeColor("error-background") : style.themeColor("primary-background");
-        case QtAntdButton::Text:
-            return style.themeColor("surface");
-        case QtAntdButton::Link:
-            return QColor(255, 255, 255, 0); // Transparent
+    ButtonTypeToChooseColor key{ buttonType, isDanger,true, false, isGhost };
+    if (button2BackgroundColor.find(key) != button2BackgroundColor.end()) {
+        return button2BackgroundColor.at(key);
     }
     return getBackgroundColor();
 }
@@ -211,15 +289,9 @@ QColor QtAntdButtonPrivate::getHoverBorderColor() const
         return getBorderColor();
     }
 
-    switch (buttonType) {
-        case QtAntdButton::Primary:
-            return isDanger ? style.themeColor("error-hover") : style.themeColor("primary-hover");
-        case QtAntdButton::Default:
-        case QtAntdButton::Dashed:
-            return isDanger ? style.themeColor("error") : style.themeColor("primary");
-        case QtAntdButton::Text:
-        case QtAntdButton::Link:
-            return QColor(255, 255, 255, 0); // Transparent
+    ButtonTypeToChooseColor key{ buttonType, isDanger,true, false, isGhost };
+    if (button2BorderColor.find(key) != button2BorderColor.end()) {
+        return button2BorderColor.at(key);
     }
     return getBorderColor();
 }
@@ -235,16 +307,9 @@ QColor QtAntdButtonPrivate::getHoverTextColor() const
         return getTextColor();
     }
 
-    switch (buttonType) {
-        case QtAntdButton::Primary:
-            return QColor(255, 255, 255); // White text on colored background
-        case QtAntdButton::Default:
-        case QtAntdButton::Dashed:
-            return isDanger ? style.themeColor("error") : style.themeColor("primary");
-        case QtAntdButton::Text:
-            return isDanger ? style.themeColor("error-hover") : style.themeColor("primary-hover");
-        case QtAntdButton::Link:
-            return isDanger ? style.themeColor("error-hover") : style.themeColor("primary-hover");
+    ButtonTypeToChooseColor key{ buttonType, isDanger,true, false, isGhost };
+    if (button2TextColor.find(key) != button2TextColor.end()) {
+        return button2TextColor.at(key);
     }
     return getTextColor();
 }
@@ -260,16 +325,9 @@ QColor QtAntdButtonPrivate::getPressedBackgroundColor() const
         return getBackgroundColor();
     }
 
-    switch (buttonType) {
-        case QtAntdButton::Primary:
-            return isDanger ? style.themeColor("error-active") : style.themeColor("primary-active");
-        case QtAntdButton::Default:
-        case QtAntdButton::Dashed:
-            return isDanger ? style.themeColor("error-background") : style.themeColor("primary-background");
-        case QtAntdButton::Text:
-            return style.themeColor("surface-variant");
-        case QtAntdButton::Link:
-            return QColor(255, 255, 255, 0); // Transparent
+    ButtonTypeToChooseColor key{ buttonType, isDanger,false, true, isGhost };
+    if (button2BackgroundColor.find(key) != button2BackgroundColor.end()) {
+        return button2BackgroundColor.at(key);
     }
     return getBackgroundColor();
 }
@@ -285,15 +343,9 @@ QColor QtAntdButtonPrivate::getPressedBorderColor() const
         return getBorderColor();
     }
 
-    switch (buttonType) {
-        case QtAntdButton::Primary:
-            return isDanger ? style.themeColor("error-active") : style.themeColor("primary-active");
-        case QtAntdButton::Default:
-        case QtAntdButton::Dashed:
-            return isDanger ? style.themeColor("error") : style.themeColor("primary");
-        case QtAntdButton::Text:
-        case QtAntdButton::Link:
-            return QColor(255, 255, 255, 0); // Transparent
+    ButtonTypeToChooseColor key{ buttonType, isDanger,false, true, isGhost };
+    if (button2BorderColor.find(key) != button2BorderColor.end()) {
+        return button2BorderColor.at(key);
     }
     return getBorderColor();
 }
@@ -309,16 +361,9 @@ QColor QtAntdButtonPrivate::getPressedTextColor() const
         return getTextColor();
     }
 
-    switch (buttonType) {
-        case QtAntdButton::Primary:
-            return QColor(255, 255, 255); // White text on colored background
-        case QtAntdButton::Default:
-        case QtAntdButton::Dashed:
-            return isDanger ? style.themeColor("error") : style.themeColor("primary");
-        case QtAntdButton::Text:
-            return isDanger ? style.themeColor("error-active") : style.themeColor("primary-active");
-        case QtAntdButton::Link:
-            return isDanger ? style.themeColor("error-active") : style.themeColor("primary-active");
+    ButtonTypeToChooseColor key{ buttonType, isDanger,false, true, isGhost };
+    if (button2TextColor.find(key) != button2TextColor.end()) {
+        return button2TextColor.at(key);
     }
     return getTextColor();
 }
@@ -330,7 +375,7 @@ void QtAntdButtonPrivate::startLoadingAnimation()
 {
     if (!loadingTimer->isActive()) {
         loadingAngle = 0;
-        loadingTimer->start(30); // Update every 30ms for faster animation
+        loadingTimer->start(timerInterval);
     }
 }
 
@@ -354,7 +399,7 @@ void QtAntdButtonPrivate::drawLoadingSpinner(QPainter *painter, const QRect &rec
     
     // Set pen properties for the spinner
     QPen pen(color);
-    pen.setWidth(1.5); // Slightly thicker line for better visibility with shorter arc
+    pen.setWidth(1.5); // loading spinner line width
     pen.setCapStyle(Qt::RoundCap); // Round ends for smoother look
     
     painter->setPen(pen);
@@ -362,21 +407,19 @@ void QtAntdButtonPrivate::drawLoadingSpinner(QPainter *painter, const QRect &rec
     
     int spinnerSize = getSpinnerSize();
     
-    // Get the center point of the provided rectangle
     QPoint center = rect.center();
     
-    // Draw a simple rotating circle centered exactly at the provided center point
     painter->translate(center);
     painter->rotate(loadingAngle);
     
     // Draw circle with a gap to indicate rotation
     // Using a slightly smaller size than spinnerSize to keep it proportional
     int drawSize = spinnerSize - 2;
-    int arcLength = 72; // Approximately 1/5 of a circle (360/5)
+    int arcLength = 72; // loading spinner arc length (degrees)
     int startAngle = 0; // Start at the top
     
     painter->drawArc(QRect(-drawSize/2, -drawSize/2, drawSize, drawSize), 
-                    startAngle * 16, // Qt uses 1/16 of a degree units
+                    startAngle * 16,
                     arcLength * 16);
     
     // Restore the painter state
@@ -544,10 +587,8 @@ void QtAntdButton::setLoading(bool loading)
         // Start or stop animation
         if (loading) {
             d->startLoadingAnimation();
-            // setEnabled(false); // Disable button while loading
         } else {
             d->stopLoadingAnimation();
-            // setEnabled(true);
         }
         
         // Update the button geometry since loading state affects size calculation
@@ -566,30 +607,13 @@ QSize QtAntdButton::sizeHint() const
 {
     Q_D(const QtAntdButton);
     
-    // Base size from QPushButton
     QSize size = QPushButton::sizeHint();
     
     // Adjust based on button size
-    int extraHeight = 0;
-    int extraWidth = 0;
-    
-    switch (d->buttonSize) {
-        case Small:
-            extraHeight = -6; // Reduced negative height adjustment
-            extraWidth = -12; // Reduced negative width adjustment
-            break;
-        case Medium:
-            // Default size
-            break;
-        case Large:
-            extraHeight = 8;
-            extraWidth = 16;
-            break;
-    }
-    
-    // Calculate minimum size needed for text content
+    int extraHeight = buttonSize2ExtraHeight.at(d->buttonSize);
+    int extraWidth = buttonSize2ExtraWidth.at(d->buttonSize);
+
     int textWidth = 0;
-    int horizontalPadding = 16; // Minimum horizontal padding
     
     if (!text().isEmpty()) {
         textWidth = fontMetrics().horizontalAdvance(text());
@@ -599,19 +623,22 @@ QSize QtAntdButton::sizeHint() const
     if (!icon().isNull() && !d->isLoading) {
         textWidth += iconSize().width();
         if (!text().isEmpty()) {
-            textWidth += 8; // Spacing between icon and text
+            textWidth += iconTextSpacing;
         }
     }
     
     // Account for spinner if loading
     if (d->isLoading) {
-        textWidth += d->getSpinnerSize() + 8 + horizontalPadding;// Spinner + spacing
+        textWidth += d->getSpinnerSize() + 8;
+        if (!text().isEmpty()) {
+            textWidth += iconTextSpacing;
+        }
     }
     
     // Ensure width is sufficient for content plus padding
     int minContentWidth = textWidth + horizontalPadding;
     
-    size.setHeight(qMax(size.height() + extraHeight, 24));
+    size.setHeight(qMax(size.height() + extraHeight, buttonMinimumHeight));
     size.setWidth(qMax(size.width() + extraWidth, minContentWidth));
     
     return size;
