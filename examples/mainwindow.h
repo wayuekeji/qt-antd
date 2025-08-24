@@ -19,7 +19,6 @@ private slots:
 
 private:
     QtAntdTheme *theme;
-    QPushButton *themeSwitchButton;
     bool isDarkMode;
 };
 

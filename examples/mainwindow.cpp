@@ -13,7 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     theme = QtAntdTheme::lightTheme(this);
     QWidget *widget = new QWidget;
-    widget->setMaximumHeight(800);
     QHBoxLayout *layout = new QHBoxLayout;
 
     widget->setLayout(layout);
@@ -24,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
     layout->addWidget(list);
     layout->addLayout(stack);
 
-    layout->setStretch(1, 2);
+    layout->setStretch(1, 4);
 
     setCentralWidget(widget);
 
@@ -48,12 +47,6 @@ MainWindow::MainWindow(QWidget *parent)
         if (w) stack->setCurrentWidget(w);
     });
 
-    // Add theme switch button
-    themeSwitchButton = new QPushButton("Switch to Dark Mode", this);
-    themeSwitchButton->setFixedWidth(180);
-    layout->addWidget(themeSwitchButton);
-    QObject::connect(themeSwitchButton, &QPushButton::clicked, this, &MainWindow::toggleTheme);
-
     applyTheme();
 }
 
@@ -62,10 +55,8 @@ void MainWindow::toggleTheme()
     isDarkMode = !isDarkMode;
     if (isDarkMode) {
         theme->setThemeMode(Antd::Dark);
-        themeSwitchButton->setText("Switch to Light Mode");
     } else {
         theme->setThemeMode(Antd::Light);
-        themeSwitchButton->setText("Switch to Dark Mode");
     }
     applyTheme();
 }
