@@ -41,6 +41,17 @@ enum Color {
     Gray11,  // #1f1f1f
     Gray12,  // #141414
     Gray13,  // #000000
+
+    Red1,
+    Red2,
+    Red3,
+    Red4,
+    Red5,
+    Red6,
+    Red7,
+    Red8,
+    Red9,
+    Red10,
     
     // Semantic colors
     Success,  // #52c41a
