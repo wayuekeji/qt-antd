@@ -59,6 +59,18 @@ void QtAntdThemePrivate::initializeColorPalette()
     colorPalette[Antd::Gray11] = QPair<QColor, QColor>(hex("#1f1f1f"), hex("#fafafa"));
     colorPalette[Antd::Gray12] = QPair<QColor, QColor>(hex("#141414"), hex("#ffffff"));
     colorPalette[Antd::Gray13] = QPair<QColor, QColor>(hex("#000000"), hex("#ffffff"));
+
+    // Red palette (for Error)
+    colorPalette[Antd::Red1] = QPair<QColor, QColor>(hex("#fff1f0"), hex("#2a1215"));
+    colorPalette[Antd::Red2] = QPair<QColor, QColor>(hex("#ffccc7"), hex("#58181c"));
+    colorPalette[Antd::Red3] = QPair<QColor, QColor>(hex("#ffa39e"), hex("#791a1f"));
+    colorPalette[Antd::Red4] = QPair<QColor, QColor>(hex("#ff7875"), hex("#a61d24"));
+    colorPalette[Antd::Red5] = QPair<QColor, QColor>(hex("#ff4d4f"), hex("#cf1322"));
+    colorPalette[Antd::Red6] = QPair<QColor, QColor>(hex("#f5222d"), hex("#d4380d"));
+    colorPalette[Antd::Red7] = QPair<QColor, QColor>(hex("#cf1322"), hex("#ad2102"));
+    colorPalette[Antd::Red8] = QPair<QColor, QColor>(hex("#a8071a"), hex("#871400"));
+    colorPalette[Antd::Red9] = QPair<QColor, QColor>(hex("#820014"), hex("#610b00"));
+    colorPalette[Antd::Red10] = QPair<QColor, QColor>(hex("#5c0011"), hex("#400000"));
     
     // Semantic colors
     colorPalette[Antd::Success] = QPair<QColor, QColor>(hex("#52c41a"), hex("#389e0d"));
@@ -116,9 +128,9 @@ void QtAntdThemePrivate::initializeLightTheme()
     colors["info"] = getAntdColor(Antd::Info);
     
     // Status hover/active states
-    colors["error-hover"] = getAntdColor(Antd::Gray4);  // Light background for error hover
-    colors["error-active"] = getAntdColor(Antd::Gray3);  // Even lighter for active
-    colors["error-background"] = getAntdColor(Antd::Gray1); // Very light background
+    colors["error-hover"] = getAntdColor(Antd::Red4);  // Light background for error hover
+    colors["error-active"] = getAntdColor(Antd::Red3);  // Even lighter for active
+    colors["error-background"] = getAntdColor(Antd::Red1); // Very light background
     
     // Primary background for non-filled buttons
     colors["primary-background"] = getAntdColor(Antd::Blue1);
