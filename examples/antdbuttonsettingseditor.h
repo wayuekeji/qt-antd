@@ -10,6 +10,7 @@ class QComboBox;
 class QPushButton;
 class QLabel;
 class QGroupBox;
+class QRadioButton;
 QT_END_NAMESPACE
 
 class QtAntdButton;
@@ -30,14 +31,17 @@ private slots:
     void onDangerToggled(bool danger);
     void onLoadingToggled(bool loading);
     void onThemeToggled(bool useTheme);
+    void onIconPositionChanged();
 
 private:
     void createButtonTypeGroup();
     void createButtonSizeGroup();
     void createButtonShapeGroup();
     void createButtonOptionsGroup();
+    void createIconOptionsGroup();
     void createPreviewGroup();
     void setupLayout();
+    void updateIconButtons();
 
     QVBoxLayout *mainLayout;
     
@@ -56,11 +60,10 @@ private:
     QCheckBox *dangerCheckBox;
     QCheckBox *loadingCheckBox;
     QCheckBox *useThemeCheckBox;
-    
     QGroupBox *previewGroup;
-    QtAntdButton *previewButton;
-    QtAntdButton *iconButton;
+    QtAntdButton *iconLeftButton;
     QtAntdButton *textOnlyButton;
+    QtAntdButton *iconOnlyButton;
 };
 
 #endif // ANTDBUTTONSETTINGSEDITOR_H

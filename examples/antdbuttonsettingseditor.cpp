@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QGroupBox>
+#include <QRadioButton>
 #include <qtantdbutton.h>
 
 AntdButtonSettingsEditor::AntdButtonSettingsEditor(QWidget *parent)
@@ -18,6 +19,9 @@ AntdButtonSettingsEditor::AntdButtonSettingsEditor(QWidget *parent)
     createButtonOptionsGroup();
     createPreviewGroup();
     setupLayout();
+    
+    // Initialize the icon buttons
+    updateIconButtons();
 }
 
 void AntdButtonSettingsEditor::createButtonTypeGroup()
@@ -65,6 +69,7 @@ void AntdButtonSettingsEditor::createButtonShapeGroup()
     shapeCombo->addItem("Default", static_cast<int>(QtAntdButton::DefaultShape));
     shapeCombo->addItem("Circle", static_cast<int>(QtAntdButton::Circle));
     shapeCombo->addItem("Round", static_cast<int>(QtAntdButton::Round));
+    
     shapeCombo->setCurrentIndex(0); // Default
     
     layout->addWidget(shapeCombo);
@@ -104,13 +109,23 @@ void AntdButtonSettingsEditor::createPreviewGroup()
     QVBoxLayout *layout = new QVBoxLayout(previewGroup);
     layout->setAlignment(Qt::AlignCenter);
     
-    previewButton = new QtAntdButton("Sample Button", this);
-    iconButton = new QtAntdButton("🎉 With Icon", this);
+    // Create various button types
+    iconLeftButton = new QtAntdButton(style()->standardIcon(QStyle::SP_DialogOpenButton), "Search", this);
     textOnlyButton = new QtAntdButton("Text Only", this);
     
-    layout->addWidget(previewButton);
-    layout->addWidget(iconButton);
+    // Create icon-only button with no text
+    iconOnlyButton = new QtAntdButton();
+    iconOnlyButton->setIcon(style()->standardIcon(QStyle::SP_DialogSaveButton));
+    iconOnlyButton->setToolTip("Icon Only Button (No Text)");
+    
+    // Set a default icon size
+    iconLeftButton->setIconSize(QSize(16, 16));
+    iconOnlyButton->setIconSize(QSize(20, 20));
+    
+    // Add buttons to layout
+    layout->addWidget(iconLeftButton);
     layout->addWidget(textOnlyButton);
+    layout->addWidget(iconOnlyButton);
 }
 
 void AntdButtonSettingsEditor::setupLayout()
@@ -128,58 +143,77 @@ void AntdButtonSettingsEditor::setupLayout()
 void AntdButtonSettingsEditor::onTypeChanged()
 {
     QtAntdButton::ButtonType type = static_cast<QtAntdButton::ButtonType>(typeCombo->currentData().toInt());
-    previewButton->setButtonType(type);
-    iconButton->setButtonType(type);
+    iconLeftButton->setButtonType(type);
     textOnlyButton->setButtonType(type);
+    iconOnlyButton->setButtonType(type);
 }
 
 void AntdButtonSettingsEditor::onSizeChanged()
 {
     QtAntdButton::ButtonSize size = static_cast<QtAntdButton::ButtonSize>(sizeCombo->currentData().toInt());
-    previewButton->setButtonSize(size);
-    iconButton->setButtonSize(size);
+    iconLeftButton->setButtonSize(size);
     textOnlyButton->setButtonSize(size);
+    iconOnlyButton->setButtonSize(size);
 }
 
 void AntdButtonSettingsEditor::onShapeChanged()
 {
     QtAntdButton::ButtonShape shape = static_cast<QtAntdButton::ButtonShape>(shapeCombo->currentData().toInt());
-    previewButton->setButtonShape(shape);
-    iconButton->setButtonShape(shape);
+    iconLeftButton->setButtonShape(shape);
     textOnlyButton->setButtonShape(shape);
+    iconOnlyButton->setButtonShape(shape);
 }
 
 void AntdButtonSettingsEditor::onBlockToggled(bool block)
 {
-    previewButton->setBlock(block);
-    iconButton->setBlock(block);
+    iconLeftButton->setBlock(block);
     textOnlyButton->setBlock(block);
+    iconOnlyButton->setBlock(block);
 }
 
 void AntdButtonSettingsEditor::onGhostToggled(bool ghost)
 {
-    previewButton->setGhost(ghost);
-    iconButton->setGhost(ghost);
+    iconLeftButton->setGhost(ghost);
     textOnlyButton->setGhost(ghost);
+    iconOnlyButton->setGhost(ghost);
 }
 
 void AntdButtonSettingsEditor::onDangerToggled(bool danger)
 {
-    previewButton->setDanger(danger);
-    iconButton->setDanger(danger);
+    iconLeftButton->setDanger(danger);
     textOnlyButton->setDanger(danger);
+    iconOnlyButton->setDanger(danger);
 }
 
 void AntdButtonSettingsEditor::onLoadingToggled(bool loading)
 {
-    previewButton->setLoading(loading);
-    iconButton->setLoading(loading);
+    iconLeftButton->setLoading(loading);
     textOnlyButton->setLoading(loading);
+    iconOnlyButton->setLoading(loading);
 }
 
 void AntdButtonSettingsEditor::onThemeToggled(bool useTheme)
 {
-    previewButton->setUseThemeColors(useTheme);
-    iconButton->setUseThemeColors(useTheme);
+    iconLeftButton->setUseThemeColors(useTheme);
     textOnlyButton->setUseThemeColors(useTheme);
+    iconOnlyButton->setUseThemeColors(useTheme);
+}
+
+void AntdButtonSettingsEditor::onIconPositionChanged()
+{
+    updateIconButtons();
+}
+
+void AntdButtonSettingsEditor::updateIconButtons()
+{
+    // Set icons according to position
+    // iconLeftButton->setIcon(iconOnLeft ? style()->standardIcon(QStyle::SP_DialogOpenButton) : QIcon());
+    iconLeftButton->setIconSize(QSize(16, 16));
+    
+    // The icon-only button always has an icon
+    iconOnlyButton->setIcon(style()->standardIcon(QStyle::SP_DialogSaveButton));
+    iconOnlyButton->setIconSize(QSize(20, 20));
+    
+    // Add a tooltip to clarify this is an icon-only button
+    iconOnlyButton->setToolTip("Icon Only Button (No Text)");
 }
