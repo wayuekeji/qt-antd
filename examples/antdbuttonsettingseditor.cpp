@@ -85,6 +85,7 @@ void AntdButtonSettingsEditor::createButtonOptionsGroup()
     
     blockCheckBox = new QCheckBox("Block (full width)", this);
     ghostCheckBox = new QCheckBox("Ghost", this);
+    ghostCheckBox->setDisabled(true); //
     dangerCheckBox = new QCheckBox("Danger", this);
     loadingCheckBox = new QCheckBox("Loading", this);
     useThemeCheckBox = new QCheckBox("Use Theme Colors", this);
