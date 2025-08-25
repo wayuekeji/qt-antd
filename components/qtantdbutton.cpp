@@ -230,9 +230,6 @@ void QtAntdButtonPrivate::init()
     // Set up default size policy
     QSizePolicy policy(QSizePolicy::Maximum, QSizePolicy::Fixed);
     q->setSizePolicy(policy);
-    
-    // Initial color update
-    updateColors();
 }
 
 /*!
@@ -244,186 +241,9 @@ void QtAntdButtonPrivate::updateGeometry()
     q->updateGeometry();
 }
 
-/*!
- * \internal
- */
-void QtAntdButtonPrivate::updateColors()
-{
-    if (!useThemeColors) {
-        return;
-    }
 
-    backgroundColor = getBackgroundColor();
-    borderColor = getBorderColor();
-    textColor = getTextColor();
-    hoverBackgroundColor = getHoverBackgroundColor();
-    hoverBorderColor = getHoverBorderColor();
-    hoverTextColor = getHoverTextColor();
-    pressedBackgroundColor = getPressedBackgroundColor();
-    pressedBorderColor = getPressedBorderColor();
-    pressedTextColor = getPressedTextColor();
-}
 
-/*!
- * \internal
- */
-QColor QtAntdButtonPrivate::getBackgroundColor() const
-{
-    QtAntdStyle &style = QtAntdStyle::instance();
-    
-    if (!q_ptr->isEnabled()) {
-        return style.themeColor("disabled-background");
-    }
-    ButtonTypeToChooseColor key{ buttonType, isDanger,false, false, isGhost };
-    if (button2BackgroundColor.find(key) != button2BackgroundColor.end()) {
-        return button2BackgroundColor.at(key);
-    }
-    return style.themeColor("background");
-}
 
-/*!
- * \internal
- */
-QColor QtAntdButtonPrivate::getBorderColor() const
-{
-    QtAntdStyle &style = QtAntdStyle::instance();
-    
-    if (!q_ptr->isEnabled()) {
-        return style.themeColor("border");
-    }
-
-    ButtonTypeToChooseColor key{ buttonType, isDanger,false, false, isGhost };
-    if (button2BorderColor.find(key) != button2BorderColor.end()) {
-        return button2BorderColor.at(key);
-    }
-    return style.themeColor("border");
-}
-
-/*!
- * \internal
- */
-QColor QtAntdButtonPrivate::getTextColor() const
-{
-    QtAntdStyle &style = QtAntdStyle::instance();
-    
-    if (!q_ptr->isEnabled()) {
-        return style.themeColor("disabled");
-    }
-
-    ButtonTypeToChooseColor key{ buttonType, isDanger,false, false, isGhost };
-    if (button2TextColor.find(key) != button2TextColor.end()) {
-        return button2TextColor.at(key);
-    }
-    return style.themeColor("text");
-}
-
-/*!
- * \internal
- */
-QColor QtAntdButtonPrivate::getHoverBackgroundColor() const
-{
-    QtAntdStyle &style = QtAntdStyle::instance();
-    
-    if (!q_ptr->isEnabled()) {
-        return getBackgroundColor();
-    }
-
-    ButtonTypeToChooseColor key{ buttonType, isDanger,true, false, isGhost };
-    if (button2BackgroundColor.find(key) != button2BackgroundColor.end()) {
-        return button2BackgroundColor.at(key);
-    }
-    return getBackgroundColor();
-}
-
-/*!
- * \internal
- */
-QColor QtAntdButtonPrivate::getHoverBorderColor() const
-{
-    QtAntdStyle &style = QtAntdStyle::instance();
-    
-    if (!q_ptr->isEnabled()) {
-        return getBorderColor();
-    }
-
-    ButtonTypeToChooseColor key{ buttonType, isDanger,true, false, isGhost };
-    if (button2BorderColor.find(key) != button2BorderColor.end()) {
-        return button2BorderColor.at(key);
-    }
-    return getBorderColor();
-}
-
-/*!
- * \internal
- */
-QColor QtAntdButtonPrivate::getHoverTextColor() const
-{
-    QtAntdStyle &style = QtAntdStyle::instance();
-    
-    if (!q_ptr->isEnabled()) {
-        return getTextColor();
-    }
-
-    ButtonTypeToChooseColor key{ buttonType, isDanger,true, false, isGhost };
-    if (button2TextColor.find(key) != button2TextColor.end()) {
-        return button2TextColor.at(key);
-    }
-    return getTextColor();
-}
-
-/*!
- * \internal
- */
-QColor QtAntdButtonPrivate::getPressedBackgroundColor() const
-{
-    QtAntdStyle &style = QtAntdStyle::instance();
-    
-    if (!q_ptr->isEnabled()) {
-        return getBackgroundColor();
-    }
-
-    ButtonTypeToChooseColor key{ buttonType, isDanger,false, true, isGhost };
-    if (button2BackgroundColor.find(key) != button2BackgroundColor.end()) {
-        return button2BackgroundColor.at(key);
-    }
-    return getBackgroundColor();
-}
-
-/*!
- * \internal
- */
-QColor QtAntdButtonPrivate::getPressedBorderColor() const
-{
-    QtAntdStyle &style = QtAntdStyle::instance();
-    
-    if (!q_ptr->isEnabled()) {
-        return getBorderColor();
-    }
-
-    ButtonTypeToChooseColor key{ buttonType, isDanger,false, true, isGhost };
-    if (button2BorderColor.find(key) != button2BorderColor.end()) {
-        return button2BorderColor.at(key);
-    }
-    return getBorderColor();
-}
-
-/*!
- * \internal
- */
-QColor QtAntdButtonPrivate::getPressedTextColor() const
-{
-    QtAntdStyle &style = QtAntdStyle::instance();
-    
-    if (!q_ptr->isEnabled()) {
-        return getTextColor();
-    }
-
-    ButtonTypeToChooseColor key{ buttonType, isDanger,false, true, isGhost };
-    if (button2TextColor.find(key) != button2TextColor.end()) {
-        return button2TextColor.at(key);
-    }
-    return getTextColor();
-}
 
 /*!
  * \internal
@@ -520,9 +340,6 @@ void QtAntdButton::setUseThemeColors(bool value)
     Q_D(QtAntdButton);
     if (d->useThemeColors != value) {
         d->useThemeColors = value;
-        if (value) {
-            d->updateColors();
-        }
         update();
     }
 }
@@ -538,7 +355,6 @@ void QtAntdButton::setButtonType(ButtonType type)
     Q_D(QtAntdButton);
     if (d->buttonType != type) {
         d->buttonType = type;
-        d->updateColors();
         update();
     }
 }
@@ -608,7 +424,6 @@ void QtAntdButton::setGhost(bool ghost)
     Q_D(QtAntdButton);
     if (d->isGhost != ghost) {
         d->isGhost = ghost;
-        d->updateColors();
         update();
     }
 }
@@ -624,7 +439,6 @@ void QtAntdButton::setDanger(bool danger)
     Q_D(QtAntdButton);
     if (d->isDanger != danger) {
         d->isDanger = danger;
-        d->updateColors();
         update();
     }
 }
@@ -758,21 +572,46 @@ void QtAntdButton::paintEvent(QPaintEvent *event)
 
     QRect rect = this->rect().adjusted(1, 1, -1, -1);
     
-    // Determine current colors based on state
-    QColor currentBgColor = d->backgroundColor;
-    QColor currentBorderColor = d->borderColor;
-    QColor currentTextColor = d->textColor;
+    QtAntdStyle &style = QtAntdStyle::instance();
     
-    if (d->isPressed) {
-        currentBgColor = d->pressedBackgroundColor;
-        currentBorderColor = d->pressedBorderColor;
-        currentTextColor = d->pressedTextColor;
-    } else if (d->isHovered) {
-        currentBgColor = d->hoverBackgroundColor;
-        currentBorderColor = d->hoverBorderColor;
-        currentTextColor = d->hoverTextColor;
+    // Function to safely get color from map or use default
+    auto getColorFromMap = [&style](
+        const std::unordered_map<ButtonTypeToChooseColor, QColor>& colorMap,
+        const ButtonTypeToChooseColor& key,
+        const QString& defaultColorName) -> QColor {
+        
+        auto it = colorMap.find(key);
+        if (it != colorMap.end()) {
+            return it->second;
+        }
+        return style.themeColor(defaultColorName);
+    };
+    
+    // Get colors based on current state
+    QColor currentBgColor;
+    QColor currentBorderColor;
+    QColor currentTextColor;
+    
+    if (!isEnabled()) {
+        // Disabled state
+        currentBgColor = style.themeColor("disabled-background");
+        currentBorderColor = style.themeColor("border");
+        currentTextColor = style.themeColor("disabled");
+    } else {
+        // Create color key based on current state
+        ButtonTypeToChooseColor colorKey{ 
+            d->buttonType, 
+            d->isDanger,
+            d->isHovered && !d->isPressed, // Only use hover when not pressed
+            d->isPressed,
+            d->isGhost 
+        };
+        
+        // Get colors from maps
+        currentBgColor = getColorFromMap(button2BackgroundColor, colorKey, "background");
+        currentBorderColor = getColorFromMap(button2BorderColor, colorKey, "border");
+        currentTextColor = getColorFromMap(button2TextColor, colorKey, "text");
     }
-    
     // Draw background
     if (currentBgColor.alpha() > 0) {
         painter.setBrush(QBrush(currentBgColor));

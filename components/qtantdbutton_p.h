@@ -19,19 +19,6 @@ public:
 
     void init();
     void updateGeometry();
-    void updateColors();
-    
-    QColor getBackgroundColor() const;
-    QColor getBorderColor() const;
-    QColor getTextColor() const;
-    
-    QColor getHoverBackgroundColor() const;
-    QColor getHoverBorderColor() const;
-    QColor getHoverTextColor() const;
-    
-    QColor getPressedBackgroundColor() const;
-    QColor getPressedBorderColor() const;
-    QColor getPressedTextColor() const;
 
     int getSpinnerSize() const;
     void startLoadingAnimation();
@@ -55,17 +42,6 @@ public:
     // Loading animation
     QTimer *loadingTimer;
     int loadingAngle;
-    
-    // Cached colors for performance
-    QColor backgroundColor;
-    QColor borderColor;
-    QColor textColor;
-    QColor hoverBackgroundColor;
-    QColor hoverBorderColor;
-    QColor hoverTextColor;
-    QColor pressedBackgroundColor;
-    QColor pressedBorderColor;
-    QColor pressedTextColor;
 };
 
 #endif // QTANTDBUTTON_P_H
