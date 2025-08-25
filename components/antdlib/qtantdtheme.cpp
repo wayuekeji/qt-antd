@@ -129,7 +129,7 @@ void QtAntdThemePrivate::initializeLightTheme()
     
     // Status hover/active states
     colors["error-hover"] = getAntdColor(Antd::Red4);  // Light background for error hover
-    colors["error-active"] = getAntdColor(Antd::Red3);  // Even lighter for active
+    colors["error-active"] = QColor("#d9363e");  // Even lighter for active
     colors["error-background"] = getAntdColor(Antd::Red1); // Very light background
     
     // Primary background for non-filled buttons

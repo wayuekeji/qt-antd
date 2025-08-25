@@ -1,5 +1,7 @@
 #include "qtantdbutton.h"
 #include "qtantdbutton_p.h"
+#include "qtantdtheme.h"
+
 #include "../include/qtantd/lib/qtantdstyle.h"
 #include <QPainter>
 #include <QFontMetrics>
@@ -61,6 +63,7 @@ const std::unordered_map<QtAntdButton::ButtonSize, int> buttonSize2ExtraHeight =
 };
 
 QtAntdStyle &style = QtAntdStyle::instance();
+auto theme = new QtAntdTheme;
 const std::unordered_map<struct ButtonTypeToChooseColor, QColor> button2BackgroundColor = {
     { { QtAntdButton::Primary, false, false, false, false }, style.themeColor("primary") }, // primary, default
     { { QtAntdButton::Primary, false, true, false, false }, style.themeColor("primary-hover") }, // hover
@@ -75,8 +78,20 @@ const std::unordered_map<struct ButtonTypeToChooseColor, QColor> button2Backgrou
     { { QtAntdButton::Dashed, false, false, false, false }, style.themeColor("background")},
     { { QtAntdButton::Dashed, true, false, false, false }, style.themeColor("background") },
 
-    { { QtAntdButton::Text, false, false, false, false }, QColor(255, 255, 255, 0) }, // Transparent
-    { { QtAntdButton::Link, false, false, false, false }, QColor(255, 255, 255, 0) }  // Transparent
+    { { QtAntdButton::Text, false, false, false, false }, QColor(255, 255, 255, 0) }, // text, default
+    { { QtAntdButton::Text, false, true, false, false }, theme->getColor(Antd::Gray3) }, // hover
+    { { QtAntdButton::Text, false, false, true, false }, theme->getColor(Antd::Gray5) }, // pressed
+
+    { { QtAntdButton::Text, true, false, false, false }, QColor(255, 255, 255, 0) }, // text, danger
+    { { QtAntdButton::Text, true, true, false, false }, QColor("#fff2f0")}, // danger, hover
+    { { QtAntdButton::Text, true, false, true, false }, QColor("#ffccc7") }, // danger, pressed
+
+    { { QtAntdButton::Link, false, false, false, false }, QColor(255, 255, 255, 0) },  // link, default
+    { { QtAntdButton::Link, false, true, false, false }, QColor(255, 255, 255, 0) },  // hover
+    { { QtAntdButton::Link, false, false, true, false }, QColor(255, 255, 255, 0) },  // press
+    { { QtAntdButton::Link, true, false, false, false }, QColor(255, 255, 255, 0) },  // link, danger
+    { { QtAntdButton::Link, true, true, false, false }, QColor(255, 255, 255, 0) },  // danger, hover
+    { { QtAntdButton::Link, true, false, true, false }, QColor(255, 255, 255, 0) }  // danger, press
 };
 
 const std::unordered_map<struct ButtonTypeToChooseColor, QColor> button2BorderColor = {
@@ -91,14 +106,38 @@ const std::unordered_map<struct ButtonTypeToChooseColor, QColor> button2BorderCo
     { { QtAntdButton::Default, true, true, false, false }, style.themeColor("error-hover") }, // danger, hover
     { { QtAntdButton::Default, true, false, true, false }, style.themeColor("error-active") }, // danger, press
 
-    { { QtAntdButton::Dashed, false, false, false, false }, QColor("#d9d9d9") },
-    { { QtAntdButton::Text, false, false, false, false }, QColor(255, 255, 255, 0) }, // Transparent
-    { { QtAntdButton::Link, false, false, false, false }, QColor(255, 255, 255, 0) }  // Transparent
+    { { QtAntdButton::Dashed, false, false, false, false }, style.themeColor("border") }, // default, default
+    { { QtAntdButton::Dashed, false, true, false, false }, style.themeColor("primary-hover") }, // hover
+    { { QtAntdButton::Dashed, false, false, true, false }, style.themeColor("primary-active") }, // press
+    { { QtAntdButton::Dashed, true, false, false, false }, style.themeColor("error") }, // default, danger
+    { { QtAntdButton::Dashed, true, true, false, false }, style.themeColor("error-hover") }, // danger, hover
+    { { QtAntdButton::Dashed, true, false, true, false }, style.themeColor("error-active") }, // danger, press
+
+    { { QtAntdButton::Text, false, false, false, false }, QColor(255, 255, 255, 0) }, // text, default
+    { { QtAntdButton::Text, false, true, false, false }, QColor(255, 255, 255, 0) }, // hover
+    { { QtAntdButton::Text, false, false, true, false }, QColor(255, 255, 255, 0) }, // press
+    { { QtAntdButton::Text, true, false, false, false }, QColor(255, 255, 255, 0) }, // text, danger
+    { { QtAntdButton::Text, true, true, false, false }, QColor(255, 255, 255, 0) }, // danger, hover
+    { { QtAntdButton::Text, true, false, true, false }, QColor(255, 255, 255, 0) }, // danger, press
+
+    { { QtAntdButton::Link, false, false, false, false }, QColor(255, 255, 255, 0) },  // link, default
+    { { QtAntdButton::Link, false, true, false, false }, QColor(255, 255, 255, 0) },  // hover
+    { { QtAntdButton::Link, false, false, true, false }, QColor(255, 255, 255, 0) },  // press
+    { { QtAntdButton::Link, true, false, false, false }, QColor(255, 255, 255, 0) },  // link, danger
+    { { QtAntdButton::Link, true, true, false, false }, QColor(255, 255, 255, 0) },  // danger, hover
+    { { QtAntdButton::Link, true, false, true, false }, QColor(255, 255, 255, 0) }  // danger, press
 };
 
 
+//"d9363e"
 const std::unordered_map<struct ButtonTypeToChooseColor, QColor> button2TextColor = {
-    { { QtAntdButton::Primary, false, false, false, false }, QColor("#ffffff") }, // primary, default
+    { { QtAntdButton::Primary, false, false, false, false }, Qt::white }, // primary, default
+    { { QtAntdButton::Primary, false, true, false, false }, Qt::white }, // primary, hover
+    { { QtAntdButton::Primary, false, false, true, false }, Qt::white }, // primary, press
+
+    { { QtAntdButton::Primary, true, false, false, false }, Qt::white}, // primary, danger
+    { { QtAntdButton::Primary, true, true, false, false }, Qt::white }, // primary, danger, hover
+    { { QtAntdButton::Primary, true, false, true, false }, Qt::white }, // primary, danger, press
 
 
     { { QtAntdButton::Default, false, false, false, false }, style.themeColor("text") }, // default, default
@@ -108,9 +147,27 @@ const std::unordered_map<struct ButtonTypeToChooseColor, QColor> button2TextColo
     { { QtAntdButton::Default, true, true, false, false }, style.themeColor("error-hover") }, // danger, hover
     { { QtAntdButton::Default, true, false, true, false }, style.themeColor("error-active") }, // danger, press
 
-    { { QtAntdButton::Dashed, false, false, false, false }, QColor("#000000") },
-    { { QtAntdButton::Text, false, false, false, false }, QColor("#000000") },
-    { { QtAntdButton::Link, false, false, false, false }, QColor("#1890ff") }
+    { { QtAntdButton::Dashed, false, false, false, false }, style.themeColor("text") }, // default, default
+    { { QtAntdButton::Dashed, false, true, false, false }, style.themeColor("primary-hover") }, // default, hover
+    { { QtAntdButton::Dashed, false, false, true, false }, style.themeColor("primary-active") }, // default, press
+    { { QtAntdButton::Dashed, true, false, false, false }, style.themeColor("error") }, // default, danger
+    { { QtAntdButton::Dashed, true, true, false, false }, style.themeColor("error-hover") }, // danger, hover
+    { { QtAntdButton::Dashed, true, false, true, false }, style.themeColor("error-active") }, // danger, press
+
+    { { QtAntdButton::Text, false, false, false, false }, style.themeColor("text") },
+    { { QtAntdButton::Text, false, true, false, false }, style.themeColor("text") },
+    { { QtAntdButton::Text, false, false, true, false }, style.themeColor("text") },
+
+    { { QtAntdButton::Text, true, false, false, false }, style.themeColor("error") },
+    { { QtAntdButton::Text, true, true, false, false }, style.themeColor("error") },
+    { { QtAntdButton::Text, true, false, true, false }, style.themeColor("error") },
+
+    { { QtAntdButton::Link, false, false, false, false }, style.themeColor("primary") }, // link, default
+    { { QtAntdButton::Link, false, true, false, false }, style.themeColor("primary-hover") }, // hover
+    { { QtAntdButton::Link, false, false, true, false }, style.themeColor("primary-active") }, // press
+    { { QtAntdButton::Link, true, false, false, false }, style.themeColor("error") }, // link, default
+    { { QtAntdButton::Link, true, true, false, false }, style.themeColor("error-hover") }, // hover
+    { { QtAntdButton::Link, true, false, true, false }, style.themeColor("error-active") } // press
 };
 
 const int horizontalPadding = 16;
