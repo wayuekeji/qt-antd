@@ -893,7 +893,11 @@ void QtAntdButton::mouseReleaseEvent(QMouseEvent *event)
     QPushButton::mouseReleaseEvent(event);
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 void QtAntdButton::enterEvent(QEnterEvent *event)
+#else
+void QtAntdButton::enterEvent(QEvent *event)
+#endif
 {
     Q_D(QtAntdButton);
     d->isHovered = true;
