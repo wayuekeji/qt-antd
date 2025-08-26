@@ -30,6 +30,7 @@ public:
     QtAntdButton::ButtonType buttonType;
     QtAntdButton::ButtonSize buttonSize;
     QtAntdButton::ButtonShape buttonShape;
+    QtAntdButton::ColorPreset colorPreset { QtAntdButton::PresetDefault };
     
     bool useThemeColors;
     bool isBlock;
