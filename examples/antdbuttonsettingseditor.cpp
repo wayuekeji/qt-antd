@@ -17,6 +17,20 @@ AntdButtonSettingsEditor::AntdButtonSettingsEditor(QWidget *parent)
     createButtonSizeGroup();
     createButtonShapeGroup();
     createButtonOptionsGroup();
+    colorGroup = new QGroupBox("Color Preset", this);
+    {
+        QVBoxLayout *layout = new QVBoxLayout(colorGroup);
+        colorCombo = new QComboBox(this);
+        colorCombo->addItem("Default", static_cast<int>(QtAntdButton::PresetDefault));
+        colorCombo->addItem("Primary", static_cast<int>(QtAntdButton::PresetPrimary));
+        colorCombo->addItem("Danger", static_cast<int>(QtAntdButton::PresetDanger));
+        colorCombo->addItem("Pink", static_cast<int>(QtAntdButton::PresetPink));
+        colorCombo->addItem("Purple", static_cast<int>(QtAntdButton::PresetPurple));
+        colorCombo->addItem("Cyan", static_cast<int>(QtAntdButton::PresetCyan));
+        colorCombo->setCurrentIndex(0);
+        layout->addWidget(colorCombo);
+        connect(colorCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &AntdButtonSettingsEditor::onColorPresetChanged);
+    }
     createPreviewGroup();
     setupLayout();
     
@@ -106,7 +120,7 @@ void AntdButtonSettingsEditor::createButtonOptionsGroup()
 
 void AntdButtonSettingsEditor::createPreviewGroup()
 {
-    previewGroup = new QGroupBox("Preview", this);
+    previewGroup = new QGroupBox("Preview");
     QVBoxLayout *layout = new QVBoxLayout(previewGroup);
     layout->setAlignment(Qt::AlignCenter);
     
@@ -135,6 +149,7 @@ void AntdButtonSettingsEditor::setupLayout()
     mainLayout->addWidget(sizeGroup);
     mainLayout->addWidget(shapeGroup);
     mainLayout->addWidget(optionsGroup);
+    mainLayout->addWidget(colorGroup);
     mainLayout->addWidget(previewGroup);
     mainLayout->addStretch();
     
@@ -203,6 +218,14 @@ void AntdButtonSettingsEditor::onThemeToggled(bool useTheme)
 void AntdButtonSettingsEditor::onIconPositionChanged()
 {
     updateIconButtons();
+}
+
+void AntdButtonSettingsEditor::onColorPresetChanged()
+{
+    auto preset = static_cast<QtAntdButton::ColorPreset>(colorCombo->currentData().toInt());
+    if (iconLeftButton) iconLeftButton->setColorPreset(preset);
+    if (textOnlyButton) textOnlyButton->setColorPreset(preset);
+    if (iconOnlyButton) iconOnlyButton->setColorPreset(preset);
 }
 
 void AntdButtonSettingsEditor::updateIconButtons()

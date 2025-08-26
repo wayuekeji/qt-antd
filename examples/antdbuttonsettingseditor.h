@@ -32,6 +32,7 @@ private slots:
     void onLoadingToggled(bool loading);
     void onThemeToggled(bool useTheme);
     void onIconPositionChanged();
+    void onColorPresetChanged();
 
 private:
     void createButtonTypeGroup();
@@ -53,6 +54,9 @@ private:
     
     QGroupBox *shapeGroup;
     QComboBox *shapeCombo;
+
+    QGroupBox *colorGroup;
+    QComboBox *colorCombo;
     
     QGroupBox *optionsGroup;
     QCheckBox *blockCheckBox;
