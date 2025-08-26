@@ -246,11 +246,11 @@ QColor QtAntdInputPrivate::getBorderColor() const
     
     if (isHovered) {
         switch (inputStatus) {
-            case QtAntdInput::Error:   return style.themeColor("error-hover");
-            case QtAntdInput::Warning: return style.themeColor("warning-hover");
-            case QtAntdInput::Success: return style.themeColor("success-hover");
+            case QtAntdInput::Error:   return style.themeColor("error");
+            case QtAntdInput::Warning: return style.themeColor("warning");
+            case QtAntdInput::Success: return style.themeColor("success");
             case QtAntdInput::Normal:
-            default:                   return style.themeColor("primary-hover");
+            default:                   return style.themeColor("primary");
         }
     }
     
@@ -493,6 +493,20 @@ void QtAntdInput::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     
     QRect rect = this->rect().adjusted(0, 0, -1, -1); // Adjust for border
+    
+    // Draw shadow effect when focused
+    if (d->isFocused) {
+        QColor shadowColor = d->getBorderColor();
+        shadowColor.setAlpha(25); // 10% opacity for subtle shadow
+        
+        // Draw multiple shadow rings for softer effect
+        for (int i = 0; i < 3; ++i) {
+            QRect shadowRect = rect.adjusted(-i-1, -i-1, i+1, i+1);
+            painter.setPen(QPen(shadowColor, 1));
+            painter.drawRoundedRect(shadowRect, d->getBorderRadius() + i, d->getBorderRadius() + i);
+            shadowColor.setAlpha(shadowColor.alpha() * 0.6); // Fade each ring
+        }
+    }
     
     // Draw background
     QColor bgColor = d->getBackgroundColor();
