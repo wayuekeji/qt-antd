@@ -126,7 +126,11 @@ protected:
     /*! \brief Resets press state and starts outer ripple if applicable. */
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     /*! \brief Tracks hover state. */
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     void enterEvent(QEnterEvent *event) Q_DECL_OVERRIDE;
+#else
+    void enterEvent(QEvent *event) Q_DECL_OVERRIDE;
+#endif
     /*! \brief Resets hover/press state. */
     void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
 
