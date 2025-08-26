@@ -32,6 +32,15 @@ public:
         Round
     };
 
+    enum ColorPreset {
+        PresetDefault,   // Follow theme defaults (existing behaviour)
+        PresetPrimary,   // Use theme primary palette
+        PresetDanger,    // Use theme error palette
+        PresetPink,      // Magenta/Pink palette
+        PresetPurple,    // Purple palette
+        PresetCyan       // Cyan palette
+    };
+
     explicit QtAntdButton(QWidget *parent = nullptr);
     explicit QtAntdButton(const QString &text, QWidget *parent = nullptr);
     explicit QtAntdButton(const QIcon &icon, const QString &text, QWidget *parent = nullptr);
@@ -60,6 +69,9 @@ public:
 
     void setLoading(bool loading);
     bool isLoading() const;
+
+    void setColorPreset(ColorPreset preset);
+    ColorPreset colorPreset() const;
 
     QSize sizeHint() const Q_DECL_OVERRIDE;
     QSize minimumSizeHint() const Q_DECL_OVERRIDE;
