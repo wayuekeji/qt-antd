@@ -5,6 +5,7 @@
 #include "antddividersettingseditor.h"
 #include "antdbuttonsettingseditor.h"
 #include "antdinputsettingseditor.h"
+#include "antdswitchsettingseditor.h"
 #include <QMap>
 #include <lib/qtantdtheme.h>
 #include <QPushButton>
@@ -31,11 +32,13 @@ MainWindow::MainWindow(QWidget *parent)
     AntdDividerSettingsEditor *divider = new AntdDividerSettingsEditor;
     AntdButtonSettingsEditor *button = new AntdButtonSettingsEditor;
     AntdInputSettingsEditor *input = new AntdInputSettingsEditor;
+    AntdSwitchSettingsEditor *switchEditor = new AntdSwitchSettingsEditor;
 
     QMap<QString, QWidget*> pageMap = {
         {"Divider", divider},
         {"Button", button},
-        {"Input", input}
+        {"Input", input},
+        {"Switch", switchEditor}
     };
 
     for (auto it = pageMap.begin(); it != pageMap.end(); ++it) {
