@@ -9,7 +9,7 @@ Implemented / planned:
 - General: Button (implemented), Icon, Typography
 - Layout: Divider (implemented), Space, Grid
 - Navigation: Breadcrumb, Tabs, Pagination
-- Data Entry: Input, Checkbox, Radio, Switch, Select, Slider, DatePicker
+- Data Entry: Input (implemented), Checkbox, Radio, Switch, Select, Slider, DatePicker
 - Data Display: Badge, Tag, Tooltip, Avatar, Table
 - Feedback: Alert, Message, Modal, Progress, Spin
 - Other: ConfigProvider, LocaleProvider, Affix
@@ -89,6 +89,51 @@ Link/Text style:
 ```cpp
 btn->setButtonType(QtAntdButton::Text);
 btn->setButtonType(QtAntdButton::Link);
+```
+
+## Input Component
+
+QtAntdInput is an Ant Design styled QLineEdit.
+
+Key features:
+- Sizes: Small, Medium, Large
+- Status States: Normal, Error, Warning, Success
+- Clear button functionality
+- Prefix/suffix text support
+- Theme-aware colors when useThemeColors() is true (default)
+
+Basic usage:
+
+```cpp
+#include <qtantd/qtantdinput.h>
+
+auto *input = new QtAntdInput("Enter text here");
+input->setInputSize(QtAntdInput::Medium);
+input->setInputStatus(QtAntdInput::Normal);
+input->setClearButtonEnabled(true);
+```
+
+Sizes and status:
+
+```cpp
+input->setInputSize(QtAntdInput::Large);
+input->setInputStatus(QtAntdInput::Error);
+```
+
+Prefix/suffix support:
+
+```cpp
+input->setPrefixText("$");
+input->setSuffixText(".com");
+```
+
+Clear button:
+
+```cpp
+input->setClearButtonEnabled(true);
+connect(input, &QtAntdInput::clearButtonClicked, [](){
+    qDebug() << "Clear button clicked!";
+});
 ```
 
 ## Examples
