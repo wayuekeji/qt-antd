@@ -19,6 +19,7 @@ class QtAntdSwitchPrivate;
 class COMPONENTS_EXPORT QtAntdSwitch : public QAbstractButton
 {
     Q_OBJECT
+    Q_PROPERTY(qreal animationValue READ animationValue WRITE setAnimationValue)
 
 public:
     /*! \brief Switch size variants affecting dimensions and appearance. */
@@ -75,6 +76,11 @@ public:
     QSize sizeHint() const Q_DECL_OVERRIDE;
     /*! \brief Minimum size hint. */
     QSize minimumSizeHint() const Q_DECL_OVERRIDE;
+
+    /*! \brief Animation value for internal use (0.0 = off, 1.0 = on). */
+    qreal animationValue() const;
+    /*! \brief Set animation value for internal use. */
+    void setAnimationValue(qreal value);
 
 protected:
     /*! \brief Custom paint implementing Ant Design switch appearance. */

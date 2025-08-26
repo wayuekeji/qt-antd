@@ -65,14 +65,9 @@ void QtAntdSwitchPrivate::init()
     Q_Q(QtAntdSwitch);
     
     // Setup animation
-    toggleAnimation = new QPropertyAnimation(q);
+    toggleAnimation = new QPropertyAnimation(q, "animationValue");
     toggleAnimation->setDuration(gAnimationDuration);
     toggleAnimation->setEasingCurve(QEasingCurve::OutCubic);
-    
-    QObject::connect(toggleAnimation, &QPropertyAnimation::valueChanged, [this](const QVariant &value) {
-        animationValue = value.toReal();
-        q_ptr->update();
-    });
     
     // Setup loading timer
     loadingTimer = new QTimer(q);
@@ -422,6 +417,21 @@ QSize QtAntdSwitch::sizeHint() const
 QSize QtAntdSwitch::minimumSizeHint() const
 {
     return sizeHint();
+}
+
+qreal QtAntdSwitch::animationValue() const
+{
+    Q_D(const QtAntdSwitch);
+    return d->animationValue;
+}
+
+void QtAntdSwitch::setAnimationValue(qreal value)
+{
+    Q_D(QtAntdSwitch);
+    if (d->animationValue != value) {
+        d->animationValue = value;
+        update();
+    }
 }
 
 void QtAntdSwitch::paintEvent(QPaintEvent *event)
