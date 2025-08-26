@@ -1,7 +1,8 @@
 #include "qtantdinput.h"
 #include "qtantdinput_p.h"
-#include "../include/qtantd/lib/qtantdstyle.h"
+#include "qtantdstyle.h"
 #include <QPainter>
+#include <QPainterPath>
 #include <QStyleOption>
 #include <QApplication>
 #include <QMouseEvent>
@@ -73,8 +74,10 @@ void QtAntdInputPrivate::updateGeometry()
 {
     Q_Q(QtAntdInput);
     
-    int height = getInputHeight();
-    q->setFixedHeight(height);
+    // Reserve vertical space for glow extent to avoid clipping
+    int innerHeight = getInputHeight();
+    int totalHeight = innerHeight + focusGlowExtent * 2; // add visual margin top/bottom
+    q->setFixedHeight(totalHeight);
     
     updateClearButton();
 }
@@ -85,7 +88,10 @@ void QtAntdInputPrivate::updateTextMargins()
     
     int leftMargin = getHorizontalPadding();
     int rightMargin = getHorizontalPadding();
-    
+
+    // Account for visual margin reserved for glow
+    int vm = getVisualMargin();
+
     // Adjust for prefix
     if (!prefixText.isEmpty() || !prefixIcon.isNull()) {
         QFontMetrics fm(q->font());
@@ -102,7 +108,8 @@ void QtAntdInputPrivate::updateTextMargins()
         rightMargin += gAntdClearButtonSize + gAntdIconSpacing;
     }
     
-    q->setTextMargins(leftMargin, 0, rightMargin, 0);
+    // Add visual margin on all sides so text stays within inner rect
+    q->setTextMargins(leftMargin + vm, vm, rightMargin + vm, vm);
 }
 
 void QtAntdInputPrivate::updateClearButton()
@@ -137,7 +144,9 @@ QRect QtAntdInputPrivate::prefixRect() const
         width = fm.horizontalAdvance(prefixText);
     }
     
-    return QRect(padding, (height - 16) / 2, width, 16);
+    // Shift by visual margin
+    int vm = getVisualMargin();
+    return QRect(padding + vm, (height + vm * 2 - 16) / 2, width, 16);
 }
 
 QRect QtAntdInputPrivate::suffixRect() const
@@ -157,8 +166,10 @@ QRect QtAntdInputPrivate::suffixRect() const
         width = fm.horizontalAdvance(suffixText);
     }
     
+    int vm = getVisualMargin();
     QRect rect = q->rect();
-    return QRect(rect.width() - padding - width, (height - 16) / 2, width, 16);
+    // Shift by visual margin
+    return QRect(rect.width() - padding - width - vm, (height + vm * 2 - 16) / 2, width, 16);
 }
 
 QRect QtAntdInputPrivate::clearButtonRect() const
@@ -168,9 +179,10 @@ QRect QtAntdInputPrivate::clearButtonRect() const
     int padding = getHorizontalPadding();
     int height = getInputHeight();
     QRect rect = q->rect();
+    int vm = getVisualMargin();
     
-    return QRect(rect.width() - padding - gAntdClearButtonSize,
-                 (height - gAntdClearButtonSize) / 2,
+    return QRect(rect.width() - padding - gAntdClearButtonSize - vm,
+                 (height + vm * 2 - gAntdClearButtonSize) / 2,
                  gAntdClearButtonSize,
                  gAntdClearButtonSize);
 }
@@ -198,7 +210,10 @@ QRect QtAntdInputPrivate::textRect() const
         rightMargin = rect.width() - clearR.left() + gAntdIconSpacing;
     }
     
-    return QRect(leftMargin, 0, rect.width() - leftMargin - rightMargin, rect.height());
+    int vm = getVisualMargin();
+    return QRect(leftMargin + vm, vm,
+                 rect.width() - (leftMargin + rightMargin) - vm * 2,
+                 rect.height() - vm * 2);
 }
 
 int QtAntdInputPrivate::getInputHeight() const
@@ -459,7 +474,8 @@ QSize QtAntdInput::sizeHint() const
     Q_D(const QtAntdInput);
     
     QSize size = QLineEdit::sizeHint();
-    size.setHeight(d->getInputHeight());
+    // Include visual margin around inner rect for glow
+    size.setHeight(d->getInputHeight() + d->getVisualMargin() * 2);
     
     // Add space for prefix/suffix if needed
     if (!d->prefixText.isEmpty() || !d->prefixIcon.isNull()) {
@@ -472,6 +488,8 @@ QSize QtAntdInput::sizeHint() const
         size.setWidth(size.width() + gAntdClearButtonSize + gAntdIconSpacing);
     }
     
+    // Also add horizontal visual margin to ensure glow space on left/right
+    size.rwidth() += d->getVisualMargin() * 2;
     return size;
 }
 
@@ -480,7 +498,8 @@ QSize QtAntdInput::minimumSizeHint() const
     Q_D(const QtAntdInput);
     
     QSize size = QLineEdit::minimumSizeHint();
-    size.setHeight(d->getInputHeight());
+    size.setHeight(d->getInputHeight() + d->getVisualMargin() * 2);
+    size.rwidth() += d->getVisualMargin() * 2;
     
     return size;
 }
@@ -488,36 +507,76 @@ QSize QtAntdInput::minimumSizeHint() const
 void QtAntdInput::paintEvent(QPaintEvent *event)
 {
     Q_D(QtAntdInput);
-    
+
+    // Define inner rounded rect where background/border live.
+    // We reserve a uniform visual margin for glow around it.
+    const int vm = d->getVisualMargin();
+    const QRectF innerRect = QRectF(this->rect()).adjusted(vm + 0.5, vm + 0.5, -(vm + 0.5), -(vm + 0.5));
+    const int radius = d->getBorderRadius();
+
+    // Pass 1: draw custom rounded background first
+    {
+        QPainter bgPainter(this);
+        bgPainter.setRenderHint(QPainter::Antialiasing);
+
+        // Background fill
+        const QColor bgColor = d->getBackgroundColor();
+        bgPainter.setPen(Qt::NoPen);
+        bgPainter.setBrush(bgColor);
+        bgPainter.drawRoundedRect(innerRect, radius, radius);
+    }
+
+    // Let QLineEdit draw text/caret/selection
+    QLineEdit::paintEvent(event);
+
+    // Pass 2: outer glow (focus only) drawn on top, clipped to outside of inner rect and inside widget rect
+    {
+        QPainter glowPainter(this);
+        glowPainter.setRenderHint(QPainter::Antialiasing);
+        const QRectF widgetRect = QRectF(this->rect());
+
+        // Build clip so we only draw OUTSIDE the inner rounded rect
+        QPainterPath clipOuter; clipOuter.addRect(widgetRect);
+        QPainterPath clipInner; clipInner.addRoundedRect(innerRect, radius, radius);
+        QPainterPath clipPath = clipOuter.subtracted(clipInner);
+        glowPainter.save();
+        glowPainter.setClipPath(clipPath);
+
+        if (d->isFocused) {
+            QColor base = d->getBorderColor();
+            const int glowExtent = qMax(3,d->getVisualMargin()); // outward pixels
+            int alpha = 4;           // start alpha slightly stronger
+            for (int o = glowExtent; o >= 1; --o) {
+                QColor cc = base; cc.setAlpha(alpha);
+                const QRectF rr = innerRect.adjusted(-o, -o, o, o);
+                glowPainter.setPen(Qt::NoPen);
+                glowPainter.setBrush(cc);
+                glowPainter.drawRoundedRect(rr, radius + o, radius + o);
+                // decay alpha gradually but keep minimum visibility
+                alpha -= 1; if (alpha < 1) alpha = 1;
+            }
+            // A crisp near-border stroke to enhance edge
+            QColor edge = base; edge.setAlpha(120);
+            const QRectF rr = innerRect.adjusted(-1, -1, 1, 1);
+            glowPainter.setPen(QPen(edge, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            glowPainter.setBrush(Qt::NoBrush);
+            glowPainter.drawRoundedRect(rr, radius + 1, radius + 1);
+        }
+
+        glowPainter.restore();
+    }
+
+    // Pass 3: draw border and prefix/suffix on very top so the border is always visible
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    
-    QRect rect = this->rect().adjusted(0, 0, -1, -1); // Adjust for border
-    
-    // Draw shadow effect when focused
-    if (d->isFocused) {
-        QColor shadowColor = d->getBorderColor();
-        shadowColor.setAlpha(25); // 10% opacity for subtle shadow
-        
-        // Draw multiple shadow rings for softer effect
-        for (int i = 0; i < 3; ++i) {
-            QRect shadowRect = rect.adjusted(-i-1, -i-1, i+1, i+1);
-            painter.setPen(QPen(shadowColor, 1));
-            painter.drawRoundedRect(shadowRect, d->getBorderRadius() + i, d->getBorderRadius() + i);
-            shadowColor.setAlpha(shadowColor.alpha() * 0.6); // Fade each ring
-        }
-    }
-    
-    // Draw background
-    QColor bgColor = d->getBackgroundColor();
-    painter.fillRect(rect, bgColor);
-    
-    // Draw border
-    QColor borderColor = d->getBorderColor();
+
+    // Border
+    const QColor borderColor = d->getBorderColor();
+    painter.setBrush(Qt::NoBrush);
     painter.setPen(QPen(borderColor, gAntdBorderWidth));
-    painter.drawRoundedRect(rect, d->getBorderRadius(), d->getBorderRadius());
-    
-    // Draw prefix
+    painter.drawRoundedRect(innerRect, radius, radius);
+
+    // Prefix
     QRect prefixRect = d->prefixRect();
     if (!prefixRect.isEmpty()) {
         painter.setPen(d->getTextColor());
@@ -528,8 +587,8 @@ void QtAntdInput::paintEvent(QPaintEvent *event)
             painter.drawPixmap(prefixRect.center() - QPoint(8, 8), pixmap);
         }
     }
-    
-    // Draw suffix
+
+    // Suffix
     QRect suffixRect = d->suffixRect();
     if (!suffixRect.isEmpty()) {
         painter.setPen(d->getTextColor());
@@ -540,10 +599,6 @@ void QtAntdInput::paintEvent(QPaintEvent *event)
             painter.drawPixmap(suffixRect.center() - QPoint(8, 8), pixmap);
         }
     }
-    
-    // Draw the text content
-    painter.end();
-    QLineEdit::paintEvent(event);
 }
 
 void QtAntdInput::focusInEvent(QFocusEvent *event)

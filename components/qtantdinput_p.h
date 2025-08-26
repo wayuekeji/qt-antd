@@ -39,6 +39,9 @@ public:
     QColor getBackgroundColor() const;
     QColor getTextColor() const;
 
+    // Visual margin reserved for focus glow (kept constant to avoid layout jump)
+    int getVisualMargin() const { return focusGlowExtent; }
+
     QtAntdInput *const q_ptr;
 
     QtAntdInput::InputSize inputSize;
@@ -59,6 +62,9 @@ public:
     
     // Clear button
     QToolButton *clearButton;
+
+    // Reserved outward glow extent (px). Also used as visual margin around inner content rect
+    int focusGlowExtent { 4 }; 
 };
 
 #endif // QTANTDINPUT_P_H
