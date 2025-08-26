@@ -93,14 +93,18 @@ btn->setButtonType(QtAntdButton::Link);
 
 ## Input Component
 
-QtAntdInput is an Ant Design styled QLineEdit.
+![img](README.assets/img_v3_02ph_054be728-cf55-4371-b106-ae7afadbf1fg.gif)
+
+
+QtAntdInput is an Ant Design styled QLineEdit with custom painting.
 
 Key features:
 - Sizes: Small, Medium, Large
-- Status States: Normal, Error, Warning, Success
-- Clear button functionality
-- Prefix/suffix text support
-- Theme-aware colors when useThemeColors() is true (default)
+- Status: Normal, Error, Warning, Success (affects border and focus ring)
+- Clear button (visible when enabled, text is not empty, and not read-only)
+- Prefix/Suffix content: text or icon
+- Theme-aware background, border, and text colors via theme tokens
+- Toggle theme usage with useThemeColors(true/false)
 
 Basic usage:
 
@@ -120,20 +124,33 @@ input->setInputSize(QtAntdInput::Large);
 input->setInputStatus(QtAntdInput::Error);
 ```
 
-Prefix/suffix support:
+Prefix/Suffix support (text or icon):
 
 ```cpp
 input->setPrefixText("$");
 input->setSuffixText(".com");
+// or use icons
+input->setPrefixIcon(QIcon::fromTheme("search"));
+input->setSuffixIcon(QIcon(":/icons/calendar.svg"));
 ```
 
-Clear button:
+Clear button and signal:
 
 ```cpp
 input->setClearButtonEnabled(true);
 connect(input, &QtAntdInput::clearButtonClicked, [](){
     qDebug() << "Clear button clicked!";
 });
+```
+
+Theme colors toggle and common states:
+
+```cpp
+input->setUseThemeColors(true);   // default; colors come from the theme
+input->setUseThemeColors(false);  // fallback to QLineEdit-like colors
+
+input->setDisabled(false);
+input->setReadOnly(false);
 ```
 
 ## Examples
