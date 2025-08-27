@@ -2,6 +2,7 @@
 #include "qtantdbutton_p.h"
 
 #include "qtantdstyle.h"
+#include "antdlib/qtantdrippleoverlay_p.h"
 #include <QPainter>
 #include <QFontMetrics>
 #include <QApplication>
@@ -14,132 +15,7 @@
 #include <QPainterPath>
 #include <QElapsedTimer>
 #include <unordered_map>
-
-namespace {
-// --- Start outer ripple overlay implementation ---
-
-// Global expansion distance (px) the outer ripple expands beyond the button
 static int gAntdWaveExpandDistance = 6;
-
-class QtAntdRippleOverlay : public QWidget {
-public:
-    QtAntdRippleOverlay(QWidget* parent,
-                        const QRect& innerRectInOverlay,
-                        int cornerRadius,
-                        bool isCircle,
-                        const QColor& color,
-                        int extra)
-        : QWidget(parent)
-        , m_innerRect(innerRectInOverlay)
-        , m_cornerRadius(cornerRadius)
-        , m_isCircle(isCircle)
-        , m_color(color)
-        , m_extra(extra)
-    {
-        setAttribute(Qt::WA_TransparentForMouseEvents, true);
-        setAttribute(Qt::WA_NoSystemBackground, true);
-        setAttribute(Qt::WA_TranslucentBackground, true);
-        m_timer = new QTimer(this);
-        QObject::connect(m_timer, &QTimer::timeout, this, [this]() {
-            if (m_clock.isValid()) {
-                const int elapsed = int(m_clock.elapsed());
-                if (elapsed >= m_duration) {
-                    m_timer->stop();
-                    this->deleteLater();
-                    return;
-                }
-            }
-            update();
-        });
-    }
-
-    void start() {
-        m_clock.start();
-        m_timer->start(16); // ~60 FPS
-        show();
-        raise();
-    }
-
-protected:
-    void paintEvent(QPaintEvent*) override {
-        QPainter p(this);
-        p.setRenderHint(QPainter::Antialiasing, true);
-
-        const qreal t = m_clock.isValid() ? qBound<qreal>(0.0, m_clock.elapsed() / qreal(m_duration), 1.0) : 0.0;
-        const qreal ease = 1.0 - std::pow(1.0 - t, 3.0);
-        const qreal grow = m_extra * ease;
-        const qreal alpha = (1.0 - t) * 0.35;
-
-        QRectF outer = m_innerRect.adjusted(-grow, -grow, grow, grow);
-        const qreal outerRadius = m_isCircle ? outer.height() / 2.0 : m_cornerRadius + grow;
-
-        QPainterPath innerPath;
-        if (m_isCircle) {
-            innerPath.addEllipse(m_innerRect);
-        } else {
-            innerPath.addRoundedRect(m_innerRect, m_cornerRadius, m_cornerRadius);
-        }
-
-        QPainterPath outerPath;
-        if (m_isCircle) {
-            outerPath.addEllipse(outer);
-        } else {
-            outerPath.addRoundedRect(outer, outerRadius, outerRadius);
-        }
-
-        QPainterPath ring = outerPath.subtracted(innerPath);
-        QColor c = m_color;
-        c.setAlphaF(alpha);
-        p.fillPath(ring, c);
-    }
-
-private:
-    QRectF m_innerRect;
-    int m_cornerRadius;
-    bool m_isCircle;
-    QColor m_color;
-    int m_extra;
-    int m_duration { 450 };
-    QElapsedTimer m_clock;
-    QTimer* m_timer { nullptr };
-};
-
-static void StartOuterRipple(QtAntdButton* btn, const QColor& color, int extra)
-{
-    // Compute inner rect like paintEvent
-    QRect rect = btn->rect().adjusted(1, 1, -1, -1);
-    int radius = 6;
-    bool isCircle = false;
-    if (btn->buttonShape() == QtAntdButton::Round) {
-        radius = rect.height() / 2;
-    } else if (btn->buttonShape() == QtAntdButton::Circle) {
-        int size = qMin(rect.width(), rect.height());
-        rect = QRect(rect.x() + (rect.width() - size) / 2,
-                     rect.y() + (rect.height() - size) / 2,
-                     size, size);
-        radius = size / 2;
-        isCircle = true;
-    }
-
-    QWidget* win = btn->window();
-    const QPoint topLeftInWin = btn->mapTo(win, rect.topLeft());
-    const QRect innerInWin(topLeftInWin, rect.size());
-
-    // Overlay geometry expanded by extra pixels around
-    const QRect overlayRect = innerInWin.adjusted(-extra, -extra, extra, extra);
-    const QRect innerInOverlay(innerInWin.topLeft() - overlayRect.topLeft(), innerInWin.size());
-
-    auto overlay = new QtAntdRippleOverlay(win,
-                                           innerInOverlay,
-                                           radius,
-                                           isCircle,
-                                           color,
-                                           extra);
-    overlay->setGeometry(overlayRect);
-    overlay->start();
-}
-} // namespace
-// --- End outer ripple overlay implementation ---
 
 const std::unordered_map<QtAntdButton::ButtonSize, int> buttonSize2ExtraWidth = {
     { QtAntdButton::Small,  -12 },
@@ -886,7 +762,27 @@ void QtAntdButton::mouseReleaseEvent(QMouseEvent *event)
             QColor rippleColor = getRippleBrand();
 
             int extra = gAntdWaveExpandDistance;
-            StartOuterRipple(this, rippleColor, extra);
+
+            // Start outer ripple when released inside and enabled (and not loading)
+            QRect rappleRect = rect().adjusted(1, 1, -1, -1);
+            int radius = 6;
+            bool isCircle = false;
+            if (buttonShape() == QtAntdButton::Round) {
+                radius = rappleRect.height() / 2;
+            } else if (buttonShape() == QtAntdButton::Circle) {
+                int size = qMin(rappleRect.width(), rappleRect.height());
+                rappleRect = QRect(rappleRect.x() + (rappleRect.width() - size) / 2,
+                             rappleRect.y() + (rappleRect.height() - size) / 2,
+                             size, size);
+                radius = size / 2;
+                isCircle = true;
+            }
+            QtAntdInternal::StartOuterRippleOverlay(this,
+                                                    rappleRect,
+                                                    radius,
+                                                    isCircle,
+                                                    rippleColor,
+                                                    extra);
         }
         update();
     }
