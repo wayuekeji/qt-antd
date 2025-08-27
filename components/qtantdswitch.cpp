@@ -2,6 +2,7 @@
 #include "qtantdswitch_p.h"
 
 #include "qtantdstyle.h"
+#include "antdlib/qtantdrippleoverlay_p.h"
 #include <QPainter>
 #include <QFontMetrics>
 #include <QApplication>
@@ -548,6 +549,22 @@ void QtAntdSwitch::mouseReleaseEvent(QMouseEvent *event)
     Q_D(QtAntdSwitch);
     if (event->button() == Qt::LeftButton && d->isPressed) {
         d->isPressed = false;
+
+        // Start outer ripple when released inside and enabled (and not loading)
+        const bool inside = rect().contains(event->pos());
+        if (inside && isEnabled() && !d->isLoading) {
+            QRect inner = d->getTrackRect();
+            int cornerRadius = inner.height() / 2;
+            QColor rippleColor = d->useThemeColors
+                ? QtAntdStyle::instance().themeColor("primary-hover")
+                : d->getTrackColor();
+            QtAntdInternal::StartOuterRippleOverlay(this,
+                                                    inner,
+                                                    cornerRadius,
+                                                    /*isCircle=*/false,
+                                                    rippleColor,
+                                                    QtAntdInternal::kAntdWaveExpandDistance);
+        }
         update();
     }
     QAbstractButton::mouseReleaseEvent(event);
