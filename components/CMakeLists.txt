@@ -32,6 +32,7 @@ set(COMPONENTSHEADER
     qtantdbutton_p.h
     qtantdinput_p.h
     qtantdswitch_p.h
+    qtantdselect_p.h
     antdlib/qtantdstyle_p.h
     antdlib/qtantdtheme_p.h
     antdlib/qtantdrippleoverlay_p.h
@@ -42,6 +43,7 @@ set(COMPONENTSSOURCE
     qtantdbutton.cpp
     qtantdinput.cpp
     qtantdswitch.cpp
+    qtantdselect.cpp
 )
 
 set(HEADER 
@@ -49,6 +51,7 @@ set(HEADER
     ../include/qtantd/qtantdbutton.h
     ../include/qtantd/qtantdinput.h
     ../include/qtantd/qtantdswitch.h
+    ../include/qtantd/qtantdselect.h
     ../include/qtantd/components_global.h
 )
 
