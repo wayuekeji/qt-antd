@@ -9,7 +9,7 @@ Implemented / planned:
 - General: Button (implemented), Icon, Typography
 - Layout: Divider (implemented), Space, Grid
 - Navigation: Breadcrumb, Tabs, Pagination
-- Data Entry: Input (implemented), Checkbox, Radio, Switch, Select, Slider, DatePicker
+- Data Entry: Input (implemented), Checkbox, Radio, Switch (implemented), Select, Slider, DatePicker
 - Data Display: Badge, Tag, Tooltip, Avatar, Table
 - Feedback: Alert, Message, Modal, Progress, Spin
 - Other: ConfigProvider, LocaleProvider, Affix
@@ -152,6 +152,70 @@ input->setUseThemeColors(false);  // fallback to QLineEdit-like colors
 input->setDisabled(false);
 input->setReadOnly(false);
 ```
+
+## Switch Component
+
+![img](README.assets/img_v3_02pi_add8b884-8141-4664-932b-d5fdbc8d427g.gif)
+
+QtAntdSwitch is an Ant Design styled toggle switch built on QAbstractButton.
+It supports animated thumb movement, hover/pressed/focus visuals, optional text or icon inside the track, a loading spinner, and theme-aware colors.
+
+Key features:
+- Sizes: Small, Medium (default), Large
+- Content per state: checked/unchecked text or icon rendered inside the track
+- Loading state: shows a spinner inside the handle and disables interaction
+- Theme-aware colors via the theme system (primary, hover, active, border, disabled)
+- Keyboard accessible: Space/Enter to toggle, visible focus outline
+- Wave/ripple feedback on toggle release (Ant Design wave effect)
+
+Basic usage:
+
+```cpp
+#include <qtantd/qtantdswitch.h>
+
+auto *sw = new QtAntdSwitch;         // or QtAntdSwitch("Label")
+sw->setChecked(true);                // initial state
+sw->setSwitchSize(QtAntdSwitch::Medium);
+```
+
+Text or icon per state:
+
+```cpp
+sw->setCheckedText("On");
+sw->setUncheckedText("Off");
+// or use icons
+sw->setCheckedIcon(QIcon::fromTheme("check"));
+sw->setUncheckedIcon(QIcon::fromTheme("close"));
+```
+
+Sizes:
+
+```cpp
+sw->setSwitchSize(QtAntdSwitch::Small);
+sw->setSwitchSize(QtAntdSwitch::Medium);
+sw->setSwitchSize(QtAntdSwitch::Large);
+```
+
+Loading and theme colors:
+
+```cpp
+sw->setLoading(true);           // shows animated spinner on the handle and disables the switch
+sw->setUseThemeColors(true);    // default; colors from QtAntdStyle/Theme
+sw->setUseThemeColors(false);   // fallback to basic colors
+```
+
+Signals (inherited from QAbstractButton):
+
+```cpp
+connect(sw, &QtAntdSwitch::toggled, this, [](bool on){ qDebug() << "Switch:" << on; });
+connect(sw, &QtAntdSwitch::clicked, this, [](){ qDebug() << "Clicked"; });
+```
+
+Notes:
+- Default geometry follows Ant Design: compact rounded track with an animated circular handle.
+- Hover/pressed states subtly adjust the track color; a dashed focus ring is drawn when focused.
+- When loading, the handle shows a spinner and user interaction is disabled until loading is cleared.
+- See the examples app for a Switch settings editor and live demo.
 
 ## Examples
 
