@@ -452,6 +452,7 @@ void QtAntdSwitch::paintEvent(QPaintEvent *event)
     painter.drawRoundedRect(trackRect, trackRect.height() / 2, trackRect.height() / 2);
     
     // Draw text/icon in track
+    painter.save(); // save and restore painter state around text drawing
     if (isChecked() && !d->checkedText.isEmpty()) {
         painter.setPen(d->getTextColor());
         QFont font = painter.font();
@@ -467,8 +468,10 @@ void QtAntdSwitch::paintEvent(QPaintEvent *event)
         QRect textRect = d->getTextRect();
         painter.drawText(textRect, Qt::AlignCenter, d->uncheckedText);
     }
+    painter.restore();
     
     // Draw icons
+    painter.save(); // save and restore painter state around icon drawing
     if (isChecked() && !d->checkedIcon.isNull()) {
         QRect textRect = d->getTextRect();
         QSize iconSize(textRect.height() * 0.6, textRect.height() * 0.6);
@@ -480,6 +483,7 @@ void QtAntdSwitch::paintEvent(QPaintEvent *event)
         QRect iconRect(textRect.center() - QPoint(iconSize.width()/2, iconSize.height()/2), iconSize);
         d->uncheckedIcon.paint(&painter, iconRect);
     }
+    painter.restore();
     
     // Draw handle
     QColor handleColor = d->getHandleColor();
