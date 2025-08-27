@@ -485,6 +485,23 @@ void QtAntdSwitch::paintEvent(QPaintEvent *event)
     }
     painter.restore();
     
+    // Prepare handle draw rect (pressed -> horizontal oval for dynamic effect)
+    QRect handleDrawRect = handleRect;
+    if (!d->isLoading && isEnabled() && d->isPressed) {
+        int extra = qMax(2, d->handleSize / 6); // how much to stretch
+        if (isChecked()) {
+            // stretch toward the left when checked (handle on the right)
+            handleDrawRect.adjust(-extra, 0, 0, 0);
+        } else {
+            // stretch toward the right when unchecked (handle on the left)
+            handleDrawRect.adjust(0, 0, +extra, 0);
+        }
+        // Keep inside the track's inner area
+        QRect innerTrack = trackRect.adjusted(d->handlePadding, (d->trackHeight - d->handleSize) / 2,
+                                              -d->handlePadding, -(d->trackHeight - d->handleSize) / 2);
+        handleDrawRect = handleDrawRect.intersected(innerTrack);
+    }
+    
     // Draw handle
     QColor handleColor = d->getHandleColor();
     painter.setBrush(handleColor);
@@ -494,15 +511,15 @@ void QtAntdSwitch::paintEvent(QPaintEvent *event)
         QColor shadowColor = Qt::black;
         shadowColor.setAlpha(30);
         painter.setBrush(shadowColor);
-        painter.drawEllipse(handleRect.adjusted(1, 1, 1, 1));
+        painter.drawEllipse(handleDrawRect.adjusted(1, 1, 1, 1));
     }
     
     painter.setBrush(handleColor);
-    painter.drawEllipse(handleRect);
+    painter.drawEllipse(handleDrawRect);
     
     // Draw loading spinner if loading
     if (d->isLoading) {
-        d->drawLoadingSpinner(&painter, handleRect, trackColor.darker(150));
+        d->drawLoadingSpinner(&painter, handleDrawRect, trackColor.darker(150));
     }
     
     // Draw focus outline
