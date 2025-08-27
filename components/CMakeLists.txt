@@ -24,6 +24,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Core)
 set(THELIB 
     antdlib/qtantdstyle.cpp
     antdlib/qtantdtheme.cpp
+    antdlib/qtantdrippleoverlay.cpp
 )
 
 set(COMPONENTSHEADER 
@@ -33,6 +34,7 @@ set(COMPONENTSHEADER
     qtantdswitch_p.h
     antdlib/qtantdstyle_p.h
     antdlib/qtantdtheme_p.h
+    antdlib/qtantdrippleoverlay_p.h
 )
 
 set(COMPONENTSSOURCE 
@@ -66,6 +68,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ../include/qtantd/)
+# Also include antdlib private headers for internal usage
+# (public include already covers lib headers; private ones are for components only)
+# The default CMake already has CMAKE_INCLUDE_CURRENT_DIR ON, so local includes work.
+
 target_include_directories(${PROJECT_NAME} PUBLIC ../include/qtantd/lib)
 
 target_link_directories(${PROJECT_NAME} PUBLIC .)
