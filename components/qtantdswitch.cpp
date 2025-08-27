@@ -73,7 +73,8 @@ void QtAntdSwitchPrivate::init()
     // Setup loading timer
     loadingTimer = new QTimer(q);
     QObject::connect(loadingTimer, &QTimer::timeout, [this]() {
-        loadingAngle = (loadingAngle + 30) % 360;
+        // 6 degrees per tick at ~60fps => ~480ms per revolution
+        loadingAngle = (loadingAngle + 6) % 360;
         q_ptr->update();
     });
     
@@ -251,24 +252,27 @@ void QtAntdSwitchPrivate::drawLoadingSpinner(QPainter *painter, const QRect &rec
 {
     painter->save();
     
-    QRect spinnerRect = rect.adjusted(2, 2, -2, -2);
-    QPoint center = spinnerRect.center();
-    int radius = qMin(spinnerRect.width(), spinnerRect.height()) / 2 - 2;
-    
-    painter->setRenderHint(QPainter::Antialiasing);
+    // Use floating-point geometry to keep the arc perfectly centered
+    QRectF spinnerRect = QRectF(rect).adjusted(2.0, 2.0, -2.0, -2.0);
+    QPointF center = spinnerRect.center();
+    painter->setRenderHint(QPainter::Antialiasing, true);
+
+    // Pen width considered in radius to avoid visual offset
+    const qreal penWidth = 1.5;
+    const qreal radius = qMin(spinnerRect.width(), spinnerRect.height()) / 2.0 - penWidth / 2.0;
+
     painter->translate(center);
-    painter->rotate(loadingAngle);
+    painter->rotate(static_cast<qreal>(loadingAngle));
     
     // Draw spinning arc
-    QPen pen(color, 1.5);
+    QPen pen(color, penWidth);
     pen.setCapStyle(Qt::RoundCap);
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
     
-    // Draw 3/4 circle arc
-    QRect arcRect(-radius, -radius, radius * 2, radius * 2);
-    painter->drawArc(arcRect, 0, 270 * 16); // 270 degrees in 1/16th degree units
-    
+    QRectF arcRect(-radius, -radius, radius * 2.0, radius * 2.0);
+    painter->drawArc(arcRect, 0, 80 * 16); // 80 degrees in 1/16th degree units
+
     painter->restore();
 }
 
